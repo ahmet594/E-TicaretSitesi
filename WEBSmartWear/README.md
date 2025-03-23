@@ -1,0 +1,1 @@
+ana dizinde npm run dev komutu ile server başlatılıyor

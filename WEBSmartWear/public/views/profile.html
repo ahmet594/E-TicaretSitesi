@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilim | Smartwear</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components/auth.css">
+    <link rel="stylesheet" href="../css/components/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="../js/auth-check.js"></script>
+</head>
+<body>
+    <!-- Navbar will be loaded here -->
+    <div id="navbar-container"></div>
+
+    <!-- Profile Section -->
+    <section class="profile-section">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h2>Profilim</h2>
+                <p class="welcome-message">Hoş geldiniz, <span id="user-name">Kullanıcı</span>!</p>
+            </div>
+            
+            <div class="profile-content">
+                <div class="profile-sidebar">
+                    <div class="profile-nav">
+                        <button class="profile-nav-item active" data-tab="account">
+                            <i class="fas fa-user"></i> Hesap Bilgileri
+                        </button>
+                        <button class="profile-nav-item" data-tab="orders">
+                            <i class="fas fa-shopping-bag"></i> Siparişlerim
+                        </button>
+                        <button class="profile-nav-item" data-tab="coupons">
+                            <i class="fas fa-tags"></i> Kuponlarım
+                        </button>
+                        <button class="profile-nav-item" data-tab="favorites">
+                            <i class="fas fa-heart"></i> Favorilerim
+                        </button>
+                        <button class="profile-nav-item" data-tab="reviews">
+                            <i class="fas fa-star"></i> Değerlendirmelerim
+                        </button>
+                        <button class="profile-nav-item" data-tab="address">
+                            <i class="fas fa-map-marker-alt"></i> Adreslerim
+                        </button>
+                        <button class="profile-nav-item" data-tab="password">
+                            <i class="fas fa-lock"></i> Şifre Değiştir
+                        </button>
+                        <button id="logout-btn" class="profile-nav-item logout">
+                            <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="profile-tabs">
+                    <!-- Account Info Tab -->
+                    <div class="profile-tab active" id="account-tab">
+                        <h3>Hesap Bilgileri</h3>
+                        <form id="account-form">
+                            <div class="form-group">
+                                <label for="profile-name">Ad Soyad</label>
+                                <input type="text" id="profile-name" name="name">
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-email">E-posta</label>
+                                <input type="email" id="profile-email" name="email" disabled>
+                            </div>
+                            <button type="submit" class="auth-button">Bilgileri Güncelle</button>
+                            <div id="account-message" class="form-message"></div>
+                        </form>
+                    </div>
+                    
+                    <!-- Orders Tab -->
+                    <div class="profile-tab" id="orders-tab">
+                        <h3>Siparişlerim</h3>
+                        <div id="orders-list" class="orders-list">
+                            <p class="empty-state">Henüz siparişiniz bulunmamaktadır.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Coupons Tab -->
+                    <div class="profile-tab" id="coupons-tab">
+                        <h3>Kuponlarım</h3>
+                        <div id="coupons-list" class="coupons-list">
+                            <p class="empty-state">Henüz kuponunuz bulunmamaktadır.</p>
+                            <div class="coupon-tip">
+                                <i class="fas fa-info-circle"></i>
+                                <p>Bültenimize abone olarak ve sosyal medyada bizi takip ederek özel kuponlar kazanabilirsiniz.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Favorites Tab -->
+                    <div class="profile-tab" id="favorites-tab">
+                        <h3>Favorilerim</h3>
+                        <div id="favorites-list" class="favorites-list">
+                            <p class="empty-state">Henüz favori ürününüz bulunmamaktadır.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Reviews Tab -->
+                    <div class="profile-tab" id="reviews-tab">
+                        <h3>Değerlendirmelerim</h3>
+                        <div id="reviews-list" class="reviews-list">
+                            <p class="empty-state">Henüz değerlendirmeniz bulunmamaktadır.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Address Tab -->
+                    <div class="profile-tab" id="address-tab">
+                        <h3>Adreslerim</h3>
+                        <div id="address-list" class="address-list">
+                            <p class="empty-state">Henüz kayıtlı adresiniz bulunmamaktadır.</p>
+                        </div>
+                        <button id="add-address-btn" class="auth-button">Yeni Adres Ekle</button>
+                        <div id="address-form-container" class="address-form-container" style="display: none;">
+                            <form id="address-form">
+                                <div class="form-group">
+                                    <label for="address-title">Adres Başlığı</label>
+                                    <input type="text" id="address-title" name="title">
+                                </div>
+                                <div class="form-group">
+                                    <label for="address-text">Adres</label>
+                                    <textarea id="address-text" name="address" rows="3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="address-city">Şehir</label>
+                                    <input type="text" id="address-city" name="city">
+                                </div>
+                                <div class="form-group">
+                                    <label for="address-postal">Posta Kodu</label>
+                                    <input type="text" id="address-postal" name="postal">
+                                </div>
+                                <div class="form-group">
+                                    <label for="address-phone">Telefon</label>
+                                    <input type="tel" id="address-phone" name="phone">
+                                </div>
+                                <button type="submit" class="auth-button">Adresi Kaydet</button>
+                                <button type="button" id="cancel-address-btn" class="secondary-button">İptal</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Password Tab -->
+                    <div class="profile-tab" id="password-tab">
+                        <h3>Şifre Değiştir</h3>
+                        <form id="password-form">
+                            <div class="form-group">
+                                <label for="current-password">Mevcut Şifre</label>
+                                <input type="password" id="current-password" name="currentPassword">
+                            </div>
+                            <div class="form-group">
+                                <label for="new-password">Yeni Şifre</label>
+                                <input type="password" id="new-password" name="newPassword">
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm-password">Yeni Şifre Tekrar</label>
+                                <input type="password" id="confirm-password" name="confirmPassword">
+                            </div>
+                            <button type="submit" class="auth-button">Şifreyi Değiştir</button>
+                            <div id="password-message" class="form-message"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h2>Yeni Ürünlerden Haberdar Olun</h2>
+            <p>En yeni ürünler ve özel indirimler için bültenimize kayıt olun</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="E-posta adresiniz">
+                <button type="submit">Kayıt Ol</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Load Components -->
+    <script src="../js/components/navbar.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Load the navbar component
+            fetch('../components/navbar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('navbar-container').innerHTML = data;
+                    // Update auth UI after navbar is loaded
+                    if (typeof updateNavbarAuthUI === 'function') {
+                        updateNavbarAuthUI();
+                    }
+                    // Re-initialize search functionality after navbar is loaded
+                    if (typeof setupSearchFunctionality === 'function') {
+                        setupSearchFunctionality();
+                    }
+                });
+
+            // Update profile UI
+            // ... existing code ...
+        });
+    </script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/profile.js"></script>
+</body>
+</html> 

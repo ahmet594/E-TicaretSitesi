@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adreslerim | Smartwear</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components/auth.css">
+    <link rel="stylesheet" href="../css/components/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="../js/auth-check.js"></script>
+</head>
+<body>
+    <!-- Navbar will be loaded here -->
+    <div id="navbar-container"></div>
+
+    <!-- Addresses Section -->
+    <section class="profile-section">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h2>Adreslerim</h2>
+                <p class="welcome-message">Kayıtlı adreslerinizi bu sayfadan yönetebilirsiniz.</p>
+            </div>
+            
+            <div id="address-list" class="address-list">
+                <p class="empty-state">Henüz kayıtlı adresiniz bulunmamaktadır.</p>
+            </div>
+            
+            <button id="add-address-btn" class="auth-button">Yeni Adres Ekle</button>
+            
+            <div id="address-form-container" class="address-form-container" style="display: none;">
+                <form id="address-form">
+                    <div class="form-group">
+                        <label for="address-title">Adres Başlığı</label>
+                        <input type="text" id="address-title" name="title">
+                    </div>
+                    <div class="form-group">
+                        <label for="address-text">Adres</label>
+                        <textarea id="address-text" name="address" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="address-city">Şehir</label>
+                        <input type="text" id="address-city" name="city">
+                    </div>
+                    <div class="form-group">
+                        <label for="address-postal">Posta Kodu</label>
+                        <input type="text" id="address-postal" name="postal">
+                    </div>
+                    <div class="form-group">
+                        <label for="address-phone">Telefon</label>
+                        <input type="tel" id="address-phone" name="phone">
+                    </div>
+                    <button type="submit" class="auth-button">Adresi Kaydet</button>
+                    <button type="button" id="cancel-address-btn" class="secondary-button">İptal</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h2>Yeni Ürünlerden Haberdar Olun</h2>
+            <p>En yeni ürünler ve özel indirimler için bültenimize kayıt olun</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="E-posta adresiniz">
+                <button type="submit">Kayıt Ol</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Load Components -->
+    <script src="../js/components/navbar.js"></script>
+    <script>
+        // Load navbar
+        fetch('../components/navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                // Update auth UI after navbar is loaded
+                if (typeof updateNavbarAuthUI === 'function') {
+                    updateNavbarAuthUI();
+                }
+                // Re-initialize search functionality after navbar is loaded
+                if (typeof setupSearchFunctionality === 'function') {
+                    setupSearchFunctionality();
+                }
+            });
+        
+        // Handle form display
+        document.addEventListener('DOMContentLoaded', () => {
+            const addAddressBtn = document.getElementById('add-address-btn');
+            const addressForm = document.getElementById('address-form');
+            const cancelAddressBtn = document.getElementById('cancel-address-btn');
+            
+            if (addAddressBtn) {
+                addAddressBtn.addEventListener('click', () => {
+                    const formContainer = document.getElementById('address-form-container');
+                    if (formContainer) {
+                        formContainer.style.display = 'block';
+                        addAddressBtn.style.display = 'none';
+                    }
+                });
+            }
+            
+            if (cancelAddressBtn) {
+                cancelAddressBtn.addEventListener('click', () => {
+                    const formContainer = document.getElementById('address-form-container');
+                    if (formContainer) {
+                        formContainer.style.display = 'none';
+                        addAddressBtn.style.display = 'block';
+                        
+                        // Reset form
+                        if (addressForm) {
+                            addressForm.reset();
+                        }
+                    }
+                });
+            }
+            
+            if (addressForm) {
+                addressForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    
+                    const title = document.getElementById('address-title').value.trim();
+                    const address = document.getElementById('address-text').value.trim();
+                    const city = document.getElementById('address-city').value.trim();
+                    const postal = document.getElementById('address-postal').value.trim();
+                    const phone = document.getElementById('address-phone').value.trim();
+                    
+                    if (!title || !address || !city || !postal || !phone) {
+                        alert('Lütfen tüm alanları doldurun');
+                        return;
+                    }
+                    
+                    // This would typically call an API endpoint to save the address
+                    // For now, we'll just simulate success and display the address
+                    
+                    const addressList = document.getElementById('address-list');
+                    const emptyState = addressList.querySelector('.empty-state');
+                    
+                    if (emptyState) {
+                        addressList.innerHTML = '';
+                    }
+                    
+                    const addressItem = document.createElement('div');
+                    addressItem.className = 'address-item';
+                    addressItem.innerHTML = `
+                        <h4>${title}</h4>
+                        <p>${address}</p>
+                        <p>${city}, ${postal}</p>
+                        <p>${phone}</p>
+                        <div class="address-actions">
+                            <button class="edit-address" data-id="temp">Düzenle</button>
+                            <button class="delete-address" data-id="temp">Sil</button>
+                        </div>
+                    `;
+                    
+                    addressList.appendChild(addressItem);
+                    
+                    // Reset and hide form
+                    document.getElementById('address-form').reset();
+                    document.getElementById('address-form-container').style.display = 'none';
+                    document.getElementById('add-address-btn').style.display = 'block';
+                });
+            }
+        });
+    </script>
+    <script src="../js/auth.js"></script>
+</body>
+</html> 

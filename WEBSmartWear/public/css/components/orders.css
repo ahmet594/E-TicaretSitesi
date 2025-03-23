@@ -1,0 +1,171 @@
+.orders-section {
+    margin-top: 70px;
+    padding: 2rem;
+    background-color: var(--light-gray);
+    min-height: calc(100vh - 70px - 300px); /* Navbar ve newsletter'ı hesaba katarak */
+}
+
+.orders-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: var(--white);
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    padding: 2rem;
+}
+
+.orders-container h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.empty-orders {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    text-align: center;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+.empty-orders i {
+    font-size: 3rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+}
+
+.empty-orders p {
+    margin-bottom: 1.5rem;
+    color: #666;
+}
+
+.shop-now-btn {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 0.8rem 1.5rem;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.shop-now-btn:hover {
+    background-color: var(--accent-color);
+}
+
+.order-item {
+    border: 1px solid #eee;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #eee;
+}
+
+.order-id {
+    font-weight: 500;
+}
+
+.order-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.order-status {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-processing {
+    background-color: #fff8e1;
+    color: #ffa000;
+}
+
+.status-shipped {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.status-delivered {
+    background-color: #e8f5e9;
+    color: #388e3c;
+}
+
+.status-cancelled {
+    background-color: #ffebee;
+    color: #d32f2f;
+}
+
+.order-content {
+    padding: 1rem;
+}
+
+.order-products {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.order-product {
+    display: flex;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.product-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.product-details {
+    flex: 1;
+}
+
+.product-name {
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+}
+
+.product-price {
+    color: var(--text-color);
+}
+
+.product-quantity {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.order-summary {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.order-total {
+    font-weight: 700;
+    color: var(--accent-color);
+} 

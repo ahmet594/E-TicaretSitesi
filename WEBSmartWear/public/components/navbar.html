@@ -1,0 +1,40 @@
+<!-- Header Section -->
+<header class="header">
+    <nav class="nav-container">
+        <div class="logo">
+            <h1>SMARTWEAR</h1>
+        </div>
+        <div class="nav-links">
+            <a href="/views/index.html" class="nav-link">Ana Sayfa</a>
+            <a href="/views/women.html" class="nav-link">Kadın</a>
+            <a href="/views/men.html" class="nav-link">Erkek</a>
+            <a href="/views/new-arrivals.html" class="nav-link">Yeni Gelenler</a>
+            <a href="/views/collections.html" class="nav-link">Koleksiyon</a>
+        </div>
+        <div class="nav-icons">
+            <a href="#" class="search-icon"><i class="fas fa-search"></i></a>
+            <a href="/views/cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count">0</span></a>
+            
+            <!-- Auth links - shown when user is not logged in -->
+            <a href="/views/login.html" class="auth-link"><i class="fas fa-sign-in-alt"></i> Giriş</a>
+            <a href="/views/register.html" class="auth-link"><i class="fas fa-user-plus"></i> Kayıt</a>
+            
+            <!-- Profile link - shown when user is logged in -->
+            <div class="profile-link dropdown">
+                <a href="#" class="profile-icon"><i class="fas fa-user"></i> <span class="user-name">Kullanıcı</span></a>
+                <div class="dropdown-content">
+                    <a href="/views/profile.html">Profilim</a>
+                    <a href="/views/orders.html">Siparişlerim</a>
+                    <a href="/views/coupons.html">Kuponlarım</a>
+                    <a href="/views/favorites.html">Favorilerim</a>
+                    <a href="/views/reviews.html">Değerlendirmelerim</a>
+                    <a href="/views/addresses.html">Adreslerim</a>
+                    <a href="#" onclick="logout()">Çıkış Yap</a>
+                </div>
+            </div>
+        </div>
+        <div class="mobile-menu-btn">
+            <i class="fas fa-bars"></i>
+        </div>
+    </nav>
+</header> 

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap | Minimalist Fashion</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components/navbar.css">
+    <link rel="stylesheet" href="../css/components/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar will be loaded here -->
+    <div id="navbar-container"></div>
+
+    <!-- Login Form -->
+    <section class="auth-section">
+        <div class="auth-container">
+            <h2>Giriş Yap</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">E-posta</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Şifre</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="auth-button">Giriş Yap</button>
+                <div id="error-message" class="error-message"></div>
+            </form>
+            <div class="auth-links">
+                <p>Hesabınız yok mu? <a href="/views/register.html">Kayıt Olun</a></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h2>Yeni Ürünlerden Haberdar Olun</h2>
+            <p>En yeni ürünler ve özel indirimler için bültenimize kayıt olun</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="E-posta adresiniz">
+                <button type="submit">Kayıt Ol</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Load Components -->
+    <script src="../js/components/navbar.js"></script>
+    <script>
+        // Load navbar
+        fetch('../components/navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                // Update auth UI after navbar is loaded
+                if (typeof updateNavbarAuthUI === 'function') {
+                    updateNavbarAuthUI();
+                }
+            });
+    </script>
+    <script src="../js/auth.js"></script>
+</body>
+</html> 

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorilerim | Smartwear</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components/auth.css">
+    <link rel="stylesheet" href="../css/components/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="../js/auth-check.js"></script>
+</head>
+<body>
+    <!-- Navbar will be loaded here -->
+    <div id="navbar-container"></div>
+
+    <!-- Favorites Section -->
+    <section class="profile-section">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h2>Favorilerim</h2>
+                <p class="welcome-message">Beğendiğiniz ürünleri daha sonra kolayca bulmak için favorilerinize ekleyebilirsiniz.</p>
+            </div>
+            
+            <div id="favorites-list" class="favorites-list">
+                <p class="empty-state">Henüz favori ürününüz bulunmamaktadır.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h2>Yeni Ürünlerden Haberdar Olun</h2>
+            <p>En yeni ürünler ve özel indirimler için bültenimize kayıt olun</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="E-posta adresiniz">
+                <button type="submit">Kayıt Ol</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Load Components -->
+    <script src="../js/components/navbar.js"></script>
+    <script>
+        // Load navbar
+        fetch('../components/navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                // Update auth UI after navbar is loaded
+                if (typeof updateNavbarAuthUI === 'function') {
+                    updateNavbarAuthUI();
+                }
+                // Re-initialize search functionality after navbar is loaded
+                if (typeof setupSearchFunctionality === 'function') {
+                    setupSearchFunctionality();
+                }
+            });
+            
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load favorites from localStorage
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const favoritesList = document.getElementById('favorites-list');
+            
+            if (favorites.length === 0) {
+                return; // Keep the empty state
+            }
+            
+            // Clear empty state
+            favoritesList.innerHTML = '';
+            
+            // Create a grid to display favorites
+            const favoritesGrid = document.createElement('div');
+            favoritesGrid.className = 'favorites-grid';
+            favoritesList.appendChild(favoritesGrid);
+            
+            // For each favorite, create an item
+            favorites.forEach(productId => {
+                const favoriteItem = document.createElement('div');
+                favoriteItem.className = 'favorite-item';
+                favoriteItem.innerHTML = `
+                    <div class="favorite-img-placeholder">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div class="favorite-details">
+                        <h4>Ürün #${productId}</h4>
+                        <p class="price">₺199.99</p>
+                        <div class="favorite-actions">
+                            <button class="add-to-cart"><i class="fas fa-shopping-cart"></i></button>
+                            <button class="remove-favorite" data-id="${productId}"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+                favoritesGrid.appendChild(favoriteItem);
+            });
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-favorite').forEach(button => {
+                button.addEventListener('click', () => {
+                    const productId = button.getAttribute('data-id');
+                    removeFavorite(productId);
+                });
+            });
+        });
+        
+        // Remove a favorite
+        function removeFavorite(productId) {
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            favorites = favorites.filter(id => id != productId);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            
+            // Reload the page to reflect changes
+            window.location.reload();
+        }
+    </script>
+    <script src="../js/auth.js"></script>
+</body>
+</html> 
