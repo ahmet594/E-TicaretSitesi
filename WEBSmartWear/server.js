@@ -11,11 +11,18 @@ const authRoutes = require('./src/routes/authRoutes');
 
 const app = express();
 
+// CORS ayarları - Tüm kaynaklara izin ver (mobil uygulama için)
+const corsOptions = {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+
 // Connect to MongoDB
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -25,6 +32,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Routes
 app.use('/api/products', productRoutes);
 app.use('/api/auth', authRoutes);
+
+// API durum kontrolü
+app.get('/api/status', (req, res) => {
+    res.json({ 
+        status: 'online', 
+        message: 'SmartWear API is running', 
+        timestamp: new Date() 
+    });
+});
 
 // Serve index.html for root route
 app.get('/', (req, res) => {
@@ -39,12 +55,16 @@ app.get('/views/:page', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({ message: 'Something went wrong!' });
+    res.status(500).json({ 
+        message: 'Something went wrong!',
+        error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+    });
 });
 
 // Server configuration
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
+    console.log(`API is available at http://localhost:${PORT}/api`);
 });

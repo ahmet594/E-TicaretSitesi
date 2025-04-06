@@ -1,260 +1,375 @@
 package com.example.mobilsmartwear.data.repository
 
 import android.util.Log
-import com.example.mobilsmartwear.data.local.ProductDao
 import com.example.mobilsmartwear.data.model.Product
-import com.example.mobilsmartwear.data.remote.ApiService
-import com.example.mobilsmartwear.data.remote.MongoDBApiService
-import com.example.mobilsmartwear.data.remote.NetworkResult
 import com.example.mobilsmartwear.data.remote.RetrofitClient
-import com.example.mobilsmartwear.data.remote.dto.MongoDBFindRequest
-import com.example.mobilsmartwear.data.remote.dto.MongoDBInsertRequest
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.withContext
-import retrofit2.HttpException
-import java.net.UnknownHostException
 
-class ProductRepository(
-    private val productDao: ProductDao,
-    private val apiService: ApiService
-) {
+class ProductRepository {
+    private val productApiService = RetrofitClient.productApiService
     
     companion object {
         private const val TAG = "ProductRepository"
-    }
-    
-    // MongoDB API Service
-    private val mongoDBApiService = RetrofitClient.mongoDBApiService
-    
-    // Local database operations
-    fun getAllProducts(): Flow<List<Product>> {
-        return productDao.getAllProducts()
-            .catch { e -> 
-                Log.e(TAG, "Error fetching all products", e) 
-                emit(emptyList())
-            }
-    }
-    
-    fun getProductsByCategory(category: String): Flow<List<Product>> {
-        return productDao.getProductsByCategory(category)
-            .catch { e -> 
-                Log.e(TAG, "Error fetching products by category", e) 
-                emit(emptyList())
-            }
-    }
-    
-    fun searchProducts(query: String): Flow<List<Product>> {
-        return flow {
-            try {
-                // MongoDB'den tüm ürünleri al ve arama yap
-                val mongoResult = getMongoDBProducts()
-                
-                if (mongoResult is NetworkResult.Success && mongoResult.data.isNotEmpty()) {
-                    // MongoDB'den gelen ürünleri arama terimine göre filtrele
-                    val filteredProducts = mongoResult.data.filter { product ->
-                        product.name.contains(query, ignoreCase = true) ||
-                        product.description.contains(query, ignoreCase = true) ||
-                        product.category.contains(query, ignoreCase = true)
-                    }
-                    emit(filteredProducts)
-                } else {
-                    emit(emptyList())
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error searching products from MongoDB", e)
-                emit(emptyList())
-            }
-        }
-    }
-    
-    suspend fun getProductById(id: Int): Product? {
-        return try {
-            // Önce yerel veritabanından bul
-            val localProduct = productDao.getProductById(id)
+        
+        // Örnek ürünler - API çağrıları başarısız olduğunda kullanılacak
+        private val sampleProducts = listOf(
+            // Erkek Kategorisi - Giyim
+            Product(
+                id = "e1",
+                name = "Erkek Slim Fit Kot Pantolon",
+                description = "Mavi, slim fit kesim, rahat kot pantolon",
+                price = 399.99,
+                category = "Erkek",
+                subcategory = "Kot Pantolon",
+                brand = "DenimCo",
+                image = "https://picsum.photos/seed/erkek1/300/400",
+                stock = 25,
+                featured = true,
+                salesCount = 45
+            ),
+            Product(
+                id = "e2",
+                name = "Erkek Gömlek",
+                description = "Beyaz, uzun kollu, pamuklu gömlek",
+                price = 299.99,
+                category = "Erkek",
+                subcategory = "Gömlek",
+                brand = "FormalWear",
+                image = "https://picsum.photos/seed/erkek2/300/400",
+                stock = 20,
+                featured = true,
+                salesCount = 38
+            ),
+            Product(
+                id = "e3",
+                name = "Erkek Kışlık Mont",
+                description = "Su geçirmez, siyah, kapüşonlu mont",
+                price = 899.99,
+                category = "Erkek",
+                subcategory = "Mont",
+                brand = "WinterStyle",
+                image = "https://picsum.photos/seed/erkek3/300/400",
+                stock = 15,
+                featured = false,
+                salesCount = 25
+            ),
+            Product(
+                id = "e4",
+                name = "Erkek Spor Ayakkabı",
+                description = "Konforlu ve şık spor ayakkabı",
+                price = 599.99,
+                category = "Erkek",
+                subcategory = "Spor Ayakkabı",
+                brand = "SportMax",
+                image = "https://picsum.photos/seed/erkek4/300/400",
+                stock = 30,
+                featured = false,
+                salesCount = 55
+            ),
+            Product(
+                id = "e5",
+                name = "Erkek Klasik Kemer",
+                description = "Hakiki deri, kahverengi kemer",
+                price = 199.99,
+                category = "Erkek",
+                subcategory = "Kemer",
+                brand = "LeatherCraft",
+                image = "https://picsum.photos/seed/erkek5/300/400",
+                stock = 40,
+                featured = false,
+                salesCount = 30
+            ),
             
-            if (localProduct != null) {
-                localProduct
+            // Kadın Kategorisi - Giyim
+            Product(
+                id = "k1",
+                name = "Kadın Bluz",
+                description = "Şık ve rahat, beyaz bluz",
+                price = 249.99,
+                category = "Kadın",
+                subcategory = "Bluz",
+                brand = "ElegantStyles",
+                image = "https://picsum.photos/seed/kadin1/300/400",
+                stock = 18,
+                featured = true,
+                salesCount = 42
+            ),
+            Product(
+                id = "k2",
+                name = "Kadın Yüksek Bel Tayt",
+                description = "Spor ve günlük kullanıma uygun siyah tayt",
+                price = 199.99,
+                category = "Kadın",
+                subcategory = "Tayt",
+                brand = "ActiveFit",
+                image = "https://picsum.photos/seed/kadin2/300/400",
+                stock = 22,
+                featured = true,
+                salesCount = 50
+            ),
+            Product(
+                id = "k3",
+                name = "Kadın Deri Ceket",
+                description = "Siyah, deri ceket",
+                price = 999.99,
+                category = "Kadın",
+                subcategory = "Ceket",
+                brand = "LeatherWear",
+                image = "https://picsum.photos/seed/kadin3/300/400",
+                stock = 10,
+                featured = false,
+                salesCount = 20
+            ),
+            Product(
+                id = "k4",
+                name = "Kadın Topuklu Ayakkabı",
+                description = "Kırmızı, stiletto topuklu ayakkabı",
+                price = 499.99,
+                category = "Kadın",
+                subcategory = "Topuklu Ayakkabı",
+                brand = "HeelMaster",
+                image = "https://picsum.photos/seed/kadin4/300/400",
+                stock = 12,
+                featured = false,
+                salesCount = 35
+            ),
+            Product(
+                id = "k5",
+                name = "Kadın El Çantası",
+                description = "Siyah, deri el çantası",
+                price = 699.99,
+                category = "Kadın",
+                subcategory = "Çanta",
+                brand = "BagQueen",
+                image = "https://picsum.photos/seed/kadin5/300/400",
+                stock = 8,
+                featured = true,
+                salesCount = 40
+            ),
+            
+            // Koleksiyon Kategorisi - Özel Ürünler
+            Product(
+                id = "c1",
+                name = "Limited Edition Akıllı Saat",
+                description = "Fitness takibi ve bildirimler için sınırlı üretim akıllı saat",
+                price = 1899.99,
+                category = "Koleksiyon",
+                subcategory = "Akıllı Saat",
+                brand = "TechWear",
+                image = "https://picsum.photos/seed/koleksiyon1/300/400",
+                stock = 5,
+                featured = true,
+                salesCount = 18
+            ),
+            Product(
+                id = "c2",
+                name = "Premium Deri Cüzdan",
+                description = "El yapımı, sınırlı üretim deri cüzdan",
+                price = 899.99,
+                category = "Koleksiyon",
+                subcategory = "Cüzdan",
+                brand = "LuxuryLeather",
+                image = "https://picsum.photos/seed/koleksiyon2/300/400",
+                stock = 7,
+                featured = true,
+                salesCount = 15
+            ),
+            Product(
+                id = "c3",
+                name = "Tasarım Takı Seti",
+                description = "Özel tasarım, el yapımı takı seti",
+                price = 1299.99,
+                category = "Koleksiyon",
+                subcategory = "Takı",
+                brand = "ArtisanJewels",
+                image = "https://picsum.photos/seed/koleksiyon3/300/400",
+                stock = 3,
+                featured = true,
+                salesCount = 12
+            )
+        )
+    }
+    
+    fun getAllProducts(): Flow<List<Product>> = flow {
+        try {
+            Log.d(TAG, "API çağrısı yapılıyor: getAllProducts")
+            val response = productApiService.getAllProducts()
+            Log.d(TAG, "API yanıtı alındı: ${response.isSuccessful}, kod: ${response.code()}")
+            
+            if (response.isSuccessful) {
+                val products = response.body() ?: emptyList()
+                Log.d(TAG, "Ürünler başarıyla alındı: ${products.size} adet ürün")
+                emit(products)
             } else {
-                // Yerel veritabanında yoksa API'den getir
+                Log.e(TAG, "Ürünler alınamadı: Kod: ${response.code()}, Mesaj: ${response.message()}")
                 try {
-                    // Önce dummy API'den getirmeyi dene
-                    val dummyProduct = apiService.getDummyProductById(id)
-                    insertProductsSafely(listOf(dummyProduct))
-                    dummyProduct
+                    val errorBody = response.errorBody()?.string()
+                    Log.e(TAG, "Hata detayı: $errorBody")
                 } catch (e: Exception) {
-                    // Dummy API'de bulunamazsa, ana API'den getir
-                    val detailResponse = apiService.getProductById(id)
-                    val product = Product(
-                        id = id,
-                        name = detailResponse.name,
-                        description = detailResponse.description,
-                        price = detailResponse.price,
-                        imageUrl = detailResponse.imagePath,
-                        category = detailResponse.category,
-                        subCategory = detailResponse.subCategory,
-                        isAvailable = detailResponse.inStock,
-                        rating = detailResponse.rating,
-                        reviewCount = detailResponse.reviewCount,
-                        sizes = detailResponse.sizes,
-                        colors = detailResponse.colors
-                    )
-                    
-                    // Veritabanına kaydet
-                    insertProductsSafely(listOf(product))
-                    
-                    product
+                    Log.e(TAG, "Hata detayı alınamadı", e)
                 }
+                Log.d(TAG, "API çağrısı başarısız oldu, örnek ürünler kullanılıyor")
+                emit(sampleProducts)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting product by id: $id", e)
-            null
+            Log.e(TAG, "Ürünler alınırken hata oluştu", e)
+            Log.d(TAG, "Hata oluştu, örnek ürünler kullanılıyor")
+            emit(sampleProducts)
         }
     }
     
-    // MongoDB'den ürünleri getir
-    suspend fun getMongoDBProducts(): NetworkResult<List<Product>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                Log.d(TAG, "Fetching products from MongoDB...")
-                
-                val request = MongoDBFindRequest()
-                val response = mongoDBApiService.findProducts(request)
-                
-                Log.d(TAG, "MongoDB products fetched: ${response.products.size}")
-                
-                if (response.products.isEmpty()) {
-                    Log.d(TAG, "No products returned from MongoDB")
-                    return@withContext NetworkResult.Error("Ürünler yüklenirken bir sorun oluştu. Lütfen daha sonra tekrar deneyin.")
+    fun getFeaturedProducts(): Flow<List<Product>> = flow {
+        try {
+            Log.d(TAG, "API çağrısı yapılıyor: getFeaturedProducts")
+            val response = productApiService.getFeaturedProducts()
+            Log.d(TAG, "API yanıtı alındı: ${response.isSuccessful}, kod: ${response.code()}")
+            
+            if (response.isSuccessful) {
+                val products = response.body() ?: emptyList()
+                Log.d(TAG, "Öne çıkan ürünler başarıyla alındı: ${products.size} adet ürün")
+                emit(products)
+            } else {
+                Log.e(TAG, "Öne çıkan ürünler alınamadı: ${response.code()}")
+                try {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e(TAG, "Hata detayı: $errorBody")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Hata detayı alınamadı", e)
                 }
-                
-                // MongoDB'den alınan ürünleri local DB'ye kaydet
-                insertProductsSafely(response.products)
-                
-                NetworkResult.Success(response.products)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error fetching products from MongoDB: ${e.message}", e)
-                return@withContext NetworkResult.Error("Ürünler yüklenirken bir sorun oluştu. Lütfen daha sonra tekrar deneyin.")
+                Log.d(TAG, "API çağrısı başarısız oldu, örnek öne çıkan ürünler kullanılıyor")
+                emit(sampleProducts.filter { it.featured })
             }
-        }
-    }
-    
-    // MongoDB'ye yeni ürün ekle
-    suspend fun addProductToMongoDB(product: Product): NetworkResult<Boolean> {
-        return withContext(Dispatchers.IO) {
-            try {
-                Log.d(TAG, "Adding product to MongoDB: ${product.name}")
-                
-                val request = MongoDBInsertRequest(document = product)
-                val response = mongoDBApiService.insertProduct(request)
-                
-                // Yerel veritabanına da ekleyelim
-                insertProductsSafely(listOf(product))
-                
-                Log.d(TAG, "Product added to MongoDB successfully: ${response["insertedId"]}")
-                NetworkResult.Success(true)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error adding product to MongoDB: ${e.message}", e)
-                NetworkResult.Error("Ürün eklenirken hata oluştu: ${e.message}")
-            }
-        }
-    }
-    
-    // Remote API operations with local cache
-    suspend fun refreshProducts(): NetworkResult<List<Product>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                // Önce MongoDB'den verileri almayı deneyelim
-                val mongoResult = getMongoDBProducts()
-                
-                if (mongoResult is NetworkResult.Success && mongoResult.data.isNotEmpty()) {
-                    Log.d(TAG, "Using MongoDB products")
-                    return@withContext mongoResult
-                }
-                
-                // MongoDB başarısız olursa hata döndür
-                return@withContext NetworkResult.Error("Ürünler yüklenirken bir sorun oluştu. Lütfen daha sonra tekrar deneyin.")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error refreshing products from MongoDB: ${e.message}", e)
-                return@withContext NetworkResult.Error("Ürünler yüklenirken bir sorun oluştu. Lütfen daha sonra tekrar deneyin.")
-            }
-        }
-    }
-    
-    private suspend fun tryFallbackToCache(): NetworkResult<List<Product>> {
-        // Veritabanında veri var mı kontrol et
-        Log.d(TAG, "Checking local database for products...")
-        val localProducts = try {
-            productDao.getAllProducts().firstOrNull() ?: emptyList()
         } catch (e: Exception) {
-            Log.e(TAG, "Error reading from database", e)
-            emptyList()
+            Log.e(TAG, "Öne çıkan ürünler alınırken hata oluştu", e)
+            Log.d(TAG, "Hata oluştu, örnek öne çıkan ürünler kullanılıyor")
+            emit(sampleProducts.filter { it.featured })
         }
-        
-        Log.d(TAG, "Found ${localProducts.size} products in local database")
-        
-        if (localProducts.isNotEmpty()) {
-            Log.d(TAG, "Returning cached products")
-            return NetworkResult.Success(localProducts, isFromCache = true)
-        }
-        
-        // Veritabanında ürün yoksa, bilgi mesajı dön
-        Log.d(TAG, "No products found in database and API request failed")
-        return NetworkResult.Error("Veritabanına ve API'ye bağlanılamıyor. Lütfen internet bağlantınızı kontrol edin.")
     }
     
-    suspend fun refreshProductsByCategory(category: String): NetworkResult<List<Product>> {
-        return withContext(Dispatchers.IO) {
-            try {
-                // Önce MongoDB'den verileri almayı deneyelim
-                val mongoResult = getMongoDBProducts()
+    fun searchProducts(query: String): Flow<List<Product>> = flow {
+        try {
+            Log.d(TAG, "API çağrısı yapılıyor: searchProducts, sorgu: $query")
+            val response = productApiService.searchProducts(query)
+            Log.d(TAG, "API yanıtı alındı: ${response.isSuccessful}, kod: ${response.code()}")
+            
+            if (response.isSuccessful) {
+                val products = response.body() ?: emptyList()
+                Log.d(TAG, "Arama sonuçları başarıyla alındı: ${products.size} adet ürün")
+                emit(products)
+            } else {
+                Log.e(TAG, "Arama sonuçları alınamadı: ${response.code()}")
+                try {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e(TAG, "Hata detayı: $errorBody")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Hata detayı alınamadı", e)
+                }
                 
-                if (mongoResult is NetworkResult.Success && mongoResult.data.isNotEmpty()) {
-                    // MongoDB'den gelen verileri kategoriye göre filtreleyelim
-                    val filteredProducts = mongoResult.data.filter { 
+                // Örnek ürünlerde arama yap
+                val filteredProducts = sampleProducts.filter { 
+                    it.name.contains(query, ignoreCase = true) || 
+                    it.description.contains(query, ignoreCase = true) ||
+                    it.category.contains(query, ignoreCase = true) ||
+                    it.subcategory?.contains(query, ignoreCase = true) ?: false ||
+                    it.brand.contains(query, ignoreCase = true)
+                }
+                Log.d(TAG, "API çağrısı başarısız oldu, örnek ürünlerde arama yapılıyor: $query")
+                emit(filteredProducts)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Arama yapılırken hata oluştu", e)
+            
+            // Örnek ürünlerde arama yap
+            val filteredProducts = sampleProducts.filter { 
+                it.name.contains(query, ignoreCase = true) || 
+                it.description.contains(query, ignoreCase = true) ||
+                it.category.contains(query, ignoreCase = true) ||
+                it.subcategory?.contains(query, ignoreCase = true) ?: false ||
+                it.brand.contains(query, ignoreCase = true)
+            }
+            Log.d(TAG, "Hata oluştu, örnek ürünlerde arama yapılıyor: $query")
+            emit(filteredProducts)
+        }
+    }
+    
+    fun getProductsByCategory(category: String): Flow<List<Product>> = flow {
+        try {
+            Log.d(TAG, "API çağrısı yapılıyor: getProductsByCategory, kategori: $category")
+            val response = productApiService.getProductsByCategory(category)
+            Log.d(TAG, "API yanıtı alındı: ${response.isSuccessful}, kod: ${response.code()}")
+            
+            if (response.isSuccessful) {
+                val products = response.body() ?: emptyList()
+                Log.d(TAG, "Kategori ürünleri başarıyla alındı: ${products.size} adet ürün")
+                emit(products)
+            } else {
+                Log.e(TAG, "Kategori ürünleri alınamadı: ${response.code()}")
+                try {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e(TAG, "Hata detayı: $errorBody")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Hata detayı alınamadı", e)
+                }
+                
+                // Örnek ürünleri kategoriye göre filtrele
+                val filteredProducts = if (category == "Anasayfa") {
+                    sampleProducts
+                } else {
+                    sampleProducts.filter { 
                         it.category.equals(category, ignoreCase = true) 
                     }
-                    
-                    if (filteredProducts.isNotEmpty()) {
-                        return@withContext NetworkResult.Success(filteredProducts)
-                    } else {
-                        return@withContext NetworkResult.Error("Bu kategoride ürün bulunamadı.")
-                    }
                 }
-                
-                // MongoDB başarısız olursa hata döndür
-                return@withContext NetworkResult.Error("Ürünler yüklenirken bir sorun oluştu. Lütfen daha sonra tekrar deneyin.")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error fetching products by category from MongoDB: ${e.message}", e)
-                return@withContext NetworkResult.Error("Ürünler yüklenirken bir sorun oluştu. Lütfen daha sonra tekrar deneyin.")
-            }
-        }
-    }
-    
-    /**
-     * Uygulama kategorilerini DummyJSON formatına dönüştürür
-     */
-    private fun mapCategoryToDummyJSON(category: String): String? {
-        return when (category.lowercase()) {
-            "erkek" -> "mens-shirts"
-            "kadın" -> "womens-dresses"
-            "yeni sezon" -> "sunglasses"
-            "koleksiyon" -> "fragrances"
-            "tümü" -> null // Tüm kategoriler
-            else -> null
-        }
-    }
-    
-    private suspend fun insertProductsSafely(products: List<Product>) {
-        try {
-            if (products.isNotEmpty()) {
-                productDao.insertAll(products)
+                Log.d(TAG, "API çağrısı başarısız oldu, örnek ürünlerde kategori filtrelemesi yapılıyor: $category")
+                emit(filteredProducts)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error inserting products to database", e)
+            Log.e(TAG, "Kategori ürünleri alınırken hata oluştu", e)
+            
+            // Örnek ürünleri kategoriye göre filtrele
+            val filteredProducts = if (category == "Anasayfa") {
+                sampleProducts
+            } else {
+                sampleProducts.filter { 
+                    it.category.equals(category, ignoreCase = true) 
+                }
+            }
+            Log.d(TAG, "Hata oluştu, örnek ürünlerde kategori filtrelemesi yapılıyor: $category")
+            emit(filteredProducts)
+        }
+    }
+    
+    suspend fun getProductById(id: String): Product? {
+        return try {
+            Log.d(TAG, "API çağrısı yapılıyor: getProductById, id: $id")
+            val response = productApiService.getProductById(id)
+            Log.d(TAG, "API yanıtı alındı: ${response.isSuccessful}, kod: ${response.code()}")
+            
+            if (response.isSuccessful) {
+                val product = response.body()
+                Log.d(TAG, "Ürün detayı başarıyla alındı: ${product?.name}")
+                product
+            } else {
+                Log.e(TAG, "Ürün detayı alınamadı: ${response.code()}")
+                try {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e(TAG, "Hata detayı: $errorBody")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Hata detayı alınamadı", e)
+                }
+                
+                // ID'ye göre örnek ürün bul
+                val product = sampleProducts.find { it.id == id }
+                Log.d(TAG, "API çağrısı başarısız oldu, örnek ürünlerde ID araması yapılıyor: $id")
+                product
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Ürün detayı alınırken hata oluştu", e)
+            
+            // ID'ye göre örnek ürün bul
+            val product = sampleProducts.find { it.id == id }
+            Log.d(TAG, "Hata oluştu, örnek ürünlerde ID araması yapılıyor: $id")
+            product
         }
     }
 } 

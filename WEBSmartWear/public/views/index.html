@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist Fashion | Modern Giyim</title>
+    <title>Ana Sayfa | SmartWear</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/components/navbar.css">
+    <link rel="stylesheet" href="../css/components/product-card.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -13,40 +14,48 @@
     <div id="navbar-container"></div>
 
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h2>Yeni Sezon Koleksiyonu</h2>
-            <p>Minimalist tasarımlarla modern tarzınızı yansıtın</p>
-            <a href="/views/collections.html" class="cta-button">Hemen Keşfet</a>
+    <section class="hero main-content-section">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Modern teknoloji, şık tasarım</h1>
+                <p>Teknoloji ve modayı buluşturan SmartWear koleksiyonuyla tarzınızı yükseltin.</p>
+                <a href="/views/women.html" class="btn">Hemen Alışverişe Başla</a>
+            </div>
         </div>
     </section>
 
-    <!-- Featured Products -->
-    <section class="featured-products">
-        <h2>Öne Çıkan Ürünler</h2>
-        <div class="category-filters">
-            <button class="category-filter active" data-category="all">Tümü</button>
-            <button class="category-filter" data-category="Kadın">Kadın</button>
-            <button class="category-filter" data-category="Erkek">Erkek</button>
-            <button class="category-filter" data-category="Aksesuar">Aksesuar</button>
-        </div>
-
-        <div class="product-grid" id="featured-products">
-            <!-- Products will be loaded dynamically -->
+    <!-- Featured Products Section -->
+    <section class="featured-products main-content-section">
+        <div class="container">
+            <h2 class="section-title">Öne Çıkan Ürünler</h2>
+            <div class="product-grid" id="featured-products">
+                <!-- Featured products will be loaded dynamically -->
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Ürünler yükleniyor...
+                </div>
+            </div>
+            <div class="view-all">
+                <a href="/views/women.html" class="btn-outline">Tüm Ürünleri Gör</a>
+            </div>
         </div>
     </section>
 
     <!-- Newsletter Section -->
-    <section class="newsletter">
-        <div class="newsletter-content">
-            <h2>Yeni Ürünlerden Haberdar Olun</h2>
-            <p>En yeni ürünler ve özel indirimler için bültenimize kayıt olun</p>
-            <form class="newsletter-form">
-                <input type="email" placeholder="E-posta adresiniz">
-                <button type="submit">Kayıt Ol</button>
-            </form>
+    <section class="newsletter main-content-section">
+        <div class="container">
+            <div class="newsletter-content">
+                <h2>Yeniliklerden Haberdar Olun</h2>
+                <p>Yeni ürünler ve özel fırsatlar için bültenimize abone olun.</p>
+                <form id="newsletter-form" class="newsletter-form">
+                    <input type="email" placeholder="E-posta adresiniz" required>
+                    <button type="submit" class="btn">Abone Ol</button>
+                </form>
+            </div>
         </div>
     </section>
+
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
 
     <!-- Load Components -->
     <script src="../js/components/navbar.js"></script>
@@ -60,12 +69,9 @@
                 if (typeof updateNavbarAuthUI === 'function') {
                     updateNavbarAuthUI();
                 }
-                // Re-initialize search functionality after navbar is loaded
-                if (typeof setupSearchFunctionality === 'function') {
-                    setupSearchFunctionality();
-                }
             });
     </script>
+    <script src="../js/cart.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/auth.js"></script>
 </body>

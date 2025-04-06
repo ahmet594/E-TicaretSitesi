@@ -1,0 +1,306 @@
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="container">
+        <!-- Logo -->
+        <a href="/" class="navbar-logo">
+            <img src="../img/logo.png" alt="SmartWear Logo">
+        </a>
+
+        <!-- Navigation Links -->
+        <ul class="navbar-links">
+            <li><a href="/" class="navbar-link">Ana Sayfa</a></li>
+            <li><a href="/views/women.html" class="navbar-link">Kadın</a></li>
+            <li><a href="/views/men.html" class="navbar-link">Erkek</a></li>
+            <li><a href="/views/about.html" class="navbar-link">Hakkımızda</a></li>
+            <li><a href="/views/contact.html" class="navbar-link">İletişim</a></li>
+        </ul>
+
+        <!-- Search Box -->
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Ürün ara...">
+            <button id="search-button">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Nav Toggle -->
+        <button class="mobile-nav-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- User Actions -->
+        <div class="user-actions">
+            <a href="/views/favorites.html" class="action-link favorite-link">
+                <i class="far fa-heart"></i>
+                <span class="action-text">Favoriler</span>
+                <span class="favorites-count badge hidden">0</span>
+            </a>
+            <a href="/views/cart.html" class="action-link cart-link">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="action-text">Sepet</span>
+                <span class="cart-count badge hidden">0</span>
+            </a>
+            <div class="auth-links">
+                <a href="/views/login.html" class="action-link login-link">
+                    <i class="fas fa-user"></i>
+                    <span class="action-text">Giriş</span>
+                </a>
+                <div class="user-menu hidden">
+                    <a href="/views/profile.html">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Profilim</span>
+                    </a>
+                    <a href="/views/orders.html">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span>Siparişlerim</span>
+                    </a>
+                    <a href="#" id="logout-button">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Çıkış</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Mobile Nav Menu -->
+<div class="mobile-menu">
+    <div class="mobile-menu-header">
+        <img src="../img/logo.png" alt="SmartWear Logo" class="mobile-logo">
+        <button class="mobile-menu-close">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <ul class="mobile-menu-links">
+        <li><a href="/views/index.html" class="mobile-menu-link">Ana Sayfa</a></li>
+        <li><a href="/views/women.html" class="mobile-menu-link">Kadın</a></li>
+        <li><a href="/views/men.html" class="mobile-menu-link">Erkek</a></li>
+        <li><a href="/views/about.html" class="mobile-menu-link">Hakkımızda</a></li>
+        <li><a href="/views/contact.html" class="mobile-menu-link">İletişim</a></li>
+    </ul>
+    <div class="mobile-menu-footer">
+        <a href="/views/login.html" class="mobile-auth-link">
+            <i class="fas fa-user"></i>
+            <span>Giriş / Kayıt</span>
+        </a>
+        <div class="mobile-user-actions">
+            <a href="/views/favorites.html">
+                <i class="far fa-heart"></i>
+                <span>Favoriler</span>
+                <span class="favorites-count badge mobile-badge hidden">0</span>
+            </a>
+            <a href="/views/cart.html">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Sepet</span>
+                <span class="cart-count badge mobile-badge hidden">0</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Search Results Popup -->
+<div class="search-results-container hidden">
+    <div class="search-results-header">
+        <h3>Arama Sonuçları</h3>
+        <button class="close-search-results">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="search-results">
+        <!-- Search results will be populated here -->
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Menü açma/kapama
+    const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    const mobileMenuClose = document.querySelector('.mobile-menu-close');
+    const overlay = document.createElement('div');
+    overlay.classList.add('overlay');
+    document.body.appendChild(overlay);
+
+    // Mobile menü aç/kapa
+    mobileNavToggle.addEventListener('click', () => {
+        mobileMenu.classList.add('active');
+        overlay.classList.add('active');
+        document.body.classList.add('no-scroll');
+    });
+
+    mobileMenuClose.addEventListener('click', () => {
+        mobileMenu.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.classList.remove('no-scroll');
+    });
+
+    overlay.addEventListener('click', () => {
+        mobileMenu.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.classList.remove('no-scroll');
+        searchResultsContainer.classList.add('hidden');
+    });
+
+    // Kullanıcı oturum durumunu kontrol et
+    const authLinks = document.querySelector('.auth-links');
+    const loginLink = document.querySelector('.login-link');
+    const userMenu = document.querySelector('.user-menu');
+    const mobileAuthLink = document.querySelector('.mobile-auth-link');
+
+    // Oturum kontrolü (localStorage'den)
+    if (localStorage.getItem('user')) {
+        // Kullanıcı giriş yapmış
+        loginLink.innerHTML = `
+            <i class="fas fa-user-circle"></i>
+            <span class="action-text">Hesabım</span>
+        `;
+        loginLink.href = "#";
+        loginLink.classList.add('logged-in');
+        
+        // Mobil link güncelleme
+        mobileAuthLink.innerHTML = `
+            <i class="fas fa-user-circle"></i>
+            <span>Hesabım</span>
+        `;
+        mobileAuthLink.href = "/views/profile.html";
+
+        // Hesap menüsü göster/gizle toggle
+        loginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            userMenu.classList.toggle('hidden');
+        });
+
+        // Dışarı tıklandığında menüyü kapat
+        document.addEventListener('click', (e) => {
+            if (!authLinks.contains(e.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+
+        // Çıkış butonuna tıklandığında
+        const logoutButton = document.getElementById('logout-button');
+        logoutButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('user');
+            localStorage.removeItem('cart');
+            localStorage.removeItem('favorites');
+            window.location.href = '/';
+        });
+    }
+
+    // Sepet ve favori sayılarını güncelle
+    updateCartCount();
+    updateFavoritesCount();
+
+    // Arama işlevselliği
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+    const searchResultsContainer = document.querySelector('.search-results-container');
+    const searchResults = document.querySelector('.search-results');
+    const closeSearchResults = document.querySelector('.close-search-results');
+
+    // Arama sonuçlarını kapat
+    closeSearchResults.addEventListener('click', () => {
+        searchResultsContainer.classList.add('hidden');
+        overlay.classList.remove('active');
+        document.body.classList.remove('no-scroll');
+    });
+
+    // Arama yap
+    function performSearch() {
+        const query = searchInput.value.trim();
+        if (query.length < 2) return;
+
+        fetch(`/api/products/search?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    searchResults.innerHTML = `
+                        <div class="no-results">
+                            <i class="fas fa-search"></i>
+                            <p>Arama sonucu bulunamadı.</p>
+                        </div>
+                    `;
+                } else {
+                    searchResults.innerHTML = data.map(product => `
+                        <div class="search-result-item">
+                            <a href="/views/product.html?id=${product._id}">
+                                <div class="search-result-img">
+                                    <img src="${product.image}" alt="${product.name}">
+                                </div>
+                                <div class="search-result-content">
+                                    <h4>${product.name}</h4>
+                                    <p class="search-result-category">${product.category}</p>
+                                    <p class="search-result-price">${product.price.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</p>
+                                </div>
+                            </a>
+                        </div>
+                    `).join('');
+                }
+                searchResultsContainer.classList.remove('hidden');
+                overlay.classList.add('active');
+                document.body.classList.add('no-scroll');
+            })
+            .catch(error => {
+                console.error('Arama hatası:', error);
+                searchResults.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Arama sırasında bir hata oluştu.</p>
+                    </div>
+                `;
+                searchResultsContainer.classList.remove('hidden');
+            });
+    }
+
+    // Arama düğmesine tıklandığında arama yap
+    searchButton.addEventListener('click', performSearch);
+
+    // Enter tuşuna basıldığında arama yap
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+
+    // Navbarda aktif sayfa linkini işaretle
+    if (typeof activateCurrentCategoryLink === 'function') {
+        activateCurrentCategoryLink();
+    }
+});
+
+// Sepet sayısını güncelle
+function updateCartCount() {
+    const cartCountBadges = document.querySelectorAll('.cart-count');
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    if (cart.length > 0) {
+        cartCountBadges.forEach(badge => {
+            badge.textContent = cart.length;
+            badge.classList.remove('hidden');
+        });
+    } else {
+        cartCountBadges.forEach(badge => {
+            badge.classList.add('hidden');
+        });
+    }
+}
+
+// Favori sayısını güncelle
+function updateFavoritesCount() {
+    const favoritesCountBadges = document.querySelectorAll('.favorites-count');
+    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    
+    if (favorites.length > 0) {
+        favoritesCountBadges.forEach(badge => {
+            badge.textContent = favorites.length;
+            badge.classList.remove('hidden');
+        });
+    } else {
+        favoritesCountBadges.forEach(badge => {
+            badge.classList.add('hidden');
+        });
+    }
+}
+</script> 

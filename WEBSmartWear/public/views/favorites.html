@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Favorilerim | Smartwear</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components/navbar.css">
     <link rel="stylesheet" href="../css/components/auth.css">
     <link rel="stylesheet" href="../css/components/profile.css">
+    <link rel="stylesheet" href="../css/components/product-card.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="../js/auth-check.js"></script>
 </head>
@@ -76,31 +78,43 @@
             favoritesGrid.className = 'favorites-grid';
             favoritesList.appendChild(favoritesGrid);
             
-            // For each favorite, create an item
-            favorites.forEach(productId => {
-                const favoriteItem = document.createElement('div');
-                favoriteItem.className = 'favorite-item';
-                favoriteItem.innerHTML = `
-                    <div class="favorite-img-placeholder">
-                        <i class="fas fa-tshirt"></i>
-                    </div>
-                    <div class="favorite-details">
-                        <h4>Ürün #${productId}</h4>
-                        <p class="price">₺199.99</p>
-                        <div class="favorite-actions">
-                            <button class="add-to-cart"><i class="fas fa-shopping-cart"></i></button>
-                            <button class="remove-favorite" data-id="${productId}"><i class="fas fa-trash"></i></button>
+            // Ürün bilgilerini almak için API'ye istek gönderelim
+            Promise.all(favorites.map(productId => 
+                fetch(`/api/products/${productId}`)
+                    .then(response => response.json())
+                    .catch(error => ({
+                        _id: productId,
+                        name: 'Ürün bilgisi alınamadı',
+                        price: 0,
+                        image: '../images/products/placeholder.jpg'
+                    }))
+            ))
+            .then(products => {
+                products.forEach(product => {
+                    const favoriteItem = document.createElement('div');
+                    favoriteItem.className = 'favorite-item';
+                    favoriteItem.innerHTML = `
+                        <a href="/views/product.html?id=${product._id}" class="favorite-img">
+                            <img src="${product.image}" alt="${product.name}" onerror="this.src='../images/products/placeholder.jpg'">
+                        </a>
+                        <div class="favorite-details">
+                            <h4>${product.name}</h4>
+                            <p class="price">${product.price ? product.price.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' }) : '₺0.00'}</p>
+                            <div class="favorite-actions">
+                                <button class="add-to-cart" onclick="addToCart('${product._id}')"><i class="fas fa-shopping-cart"></i></button>
+                                <button class="remove-favorite" data-id="${product._id}"><i class="fas fa-trash"></i></button>
+                            </div>
                         </div>
-                    </div>
-                `;
-                favoritesGrid.appendChild(favoriteItem);
-            });
-            
-            // Add event listeners to remove buttons
-            document.querySelectorAll('.remove-favorite').forEach(button => {
-                button.addEventListener('click', () => {
-                    const productId = button.getAttribute('data-id');
-                    removeFavorite(productId);
+                    `;
+                    favoritesGrid.appendChild(favoriteItem);
+                });
+                
+                // Add event listeners to remove buttons
+                document.querySelectorAll('.remove-favorite').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const productId = button.getAttribute('data-id');
+                        removeFavorite(productId);
+                    });
                 });
             });
         });
@@ -113,6 +127,28 @@
             
             // Reload the page to reflect changes
             window.location.reload();
+        }
+        
+        // Add to cart function
+        function addToCart(productId) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart.push(productId);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = 'Ürün sepete eklendi!';
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+            
+            // Update cart count if function exists
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
         }
     </script>
     <script src="../js/auth.js"></script>

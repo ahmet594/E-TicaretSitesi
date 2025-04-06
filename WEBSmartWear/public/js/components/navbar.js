@@ -40,6 +40,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Update auth UI elements based on login state
     updateNavbarAuthUI();
+    
+    // Activate current category link if function exists
+    if (typeof activateCurrentCategoryLink === 'function') {
+        activateCurrentCategoryLink();
+    }
+    
+    // Add click event to category nav links
+    setupCategoryNavLinks();
 });
 
 // Update cart count
@@ -226,8 +234,6 @@ async function performSearchInline(query) {
                         categoryIcon = 'female';
                     } else if (product.category.toLowerCase().includes('erkek')) {
                         categoryIcon = 'male';
-                    } else if (product.category.toLowerCase().includes('aksesuar')) {
-                        categoryIcon = 'gem';
                     }
                 }
                 
@@ -322,4 +328,20 @@ function updateNavbarAuthUI() {
         authLinks.forEach(link => link.style.display = 'block');
         profileLinks.forEach(link => link.style.display = 'none');
     }
+}
+
+// Setup category nav links
+function setupCategoryNavLinks() {
+    const categoryLinks = document.querySelectorAll('.category-nav-link');
+    
+    categoryLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const category = link.getAttribute('data-category');
+            
+            // Store category in sessionStorage for page changes
+            if (category) {
+                sessionStorage.setItem('currentCategory', category);
+            }
+        });
+    });
 } 

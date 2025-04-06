@@ -46,6 +46,7 @@ import androidx.navigation.NavHostController
 import com.example.mobilsmartwear.ui.screens.auth.ForgotPasswordScreen
 import com.example.mobilsmartwear.ui.screens.auth.LoginScreen
 import com.example.mobilsmartwear.ui.screens.auth.RegisterScreen
+import com.example.mobilsmartwear.ui.screens.favorites.FavoritesScreen
 
 class MainActivity : ComponentActivity() {
     
@@ -55,6 +56,7 @@ class MainActivity : ComponentActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "Uygulama başlatılıyor...")
         
         try {
             // TokenManager'ı başlat
@@ -70,6 +72,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
+                        Log.d(TAG, "AppNavHost başlatılıyor...")
                         AppNavHost()
                     }
                 }
@@ -77,6 +80,8 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing MainActivity", e)
         }
+        
+        Log.d(TAG, "Uygulama başlatıldı")
     }
 }
 
@@ -121,6 +126,41 @@ fun AppNavHost(
         
         composable("home") {
             HomeScreen(navController = navController)
+        }
+        
+        // Ürün detay ekranı
+        composable(
+            route = "${NavDestination.ProductDetail.route}/{productId}",
+            arguments = listOf(navArgument("productId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getString("productId") ?: ""
+            ProductDetailScreen(
+                productId = productId,
+                onBackClick = { navController.popBackStack() },
+                onAddToCart = { 
+                    // Snackbar ile bildirim gösterip sepet ekranına gitme
+                    navController.navigate(NavDestination.Cart.route)
+                }
+            )
+        }
+        
+        // Sepet ekranı
+        composable(route = NavDestination.Cart.route) {
+            CartScreen(
+                onNavigateToCheckout = {
+                    // Ödeme ekranına yönlendirme - ileride eklenecek
+                }
+            )
+        }
+        
+        // Favoriler ekranı
+        composable(route = NavDestination.Favorites.route) {
+            FavoritesScreen(
+                onProductClick = { product ->
+                    navController.navigate("${NavDestination.ProductDetail.route}/${product.id}")
+                },
+                onBackClick = { navController.popBackStack() }
+            )
         }
     }
 }

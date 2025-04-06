@@ -1,36 +1,47 @@
 const Product = require('../models/Product');
+const mongoose = require('mongoose');
 
-// Get all products with optional category filter
+// Tüm ürünleri getir
 exports.getAllProducts = async (req, res) => {
     try {
-        const { category } = req.query;
-        let query = {};
+        const products = await Product.find();
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Belirli bir ürünü ID'ye göre getir
+exports.getProductById = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
         
-        if (category) {
-            query.category = category;
+        if (!product) {
+            return res.status(404).json({ message: 'Ürün bulunamadı' });
         }
         
-        const products = await Product.find(query);
-        res.json(products);
+        res.json(product);
     } catch (error) {
+        // ID format hatası kontrolü
+        if (error instanceof mongoose.Error.CastError) {
+            return res.status(400).json({ message: 'Geçersiz ürün ID formatı' });
+        }
         res.status(500).json({ message: error.message });
     }
 };
 
-// Get featured products
-exports.getFeaturedProducts = async (req, res) => {
-    try {
-        const products = await Product.find({ featured: true });
-        res.json(products);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// Get products by category
+// Kategoriye göre ürün getir
 exports.getProductsByCategory = async (req, res) => {
     try {
-        const { category } = req.params;
+        const category = req.params.category;
+        
+        // Geçerli kategorileri kontrol et
+        const validCategories = ['Kadın', 'Erkek'];
+        
+        if (!validCategories.includes(category)) {
+            return res.status(400).json({ message: 'Geçersiz kategori' });
+        }
+        
         const products = await Product.find({ category });
         res.json(products);
     } catch (error) {
@@ -38,81 +49,125 @@ exports.getProductsByCategory = async (req, res) => {
     }
 };
 
-// Get product by ID
-exports.getProductById = async (req, res) => {
+// Yeni ürün ekle
+exports.createProduct = async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id);
-        if (!product) {
-            return res.status(404).json({ message: 'Ürün bulunamadı' });
-        }
-        res.json(product);
+        const newProduct = new Product(req.body);
+        const savedProduct = await newProduct.save();
+        res.status(201).json(savedProduct);
     } catch (error) {
+        // Validasyon hatası kontrolü
+        if (error.name === 'ValidationError') {
+            const validationErrors = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({ message: 'Validasyon hatası', errors: validationErrors });
+        }
         res.status(500).json({ message: error.message });
     }
 };
 
-// Create new product
-exports.createProduct = async (req, res) => {
-    const product = new Product(req.body);
-    try {
-        const newProduct = await product.save();
-        res.status(201).json(newProduct);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-// Update product
+// Ürün güncelle
 exports.updateProduct = async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id);
-        if (!product) {
-            return res.status(404).json({ message: 'Ürün bulunamadı' });
+        const updatedProduct = await Product.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+        
+        if (!updatedProduct) {
+            return res.status(404).json({ message: 'Güncellenecek ürün bulunamadı' });
         }
-        Object.assign(product, req.body);
-        const updatedProduct = await product.save();
+        
         res.json(updatedProduct);
     } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-// Delete product
-exports.deleteProduct = async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
-        if (!product) {
-            return res.status(404).json({ message: 'Ürün bulunamadı' });
+        // ID format hatası kontrolü
+        if (error instanceof mongoose.Error.CastError) {
+            return res.status(400).json({ message: 'Geçersiz ürün ID formatı' });
         }
-        await product.remove();
-        res.json({ message: 'Ürün başarıyla silindi' });
-    } catch (error) {
+        
+        // Validasyon hatası kontrolü
+        if (error.name === 'ValidationError') {
+            const validationErrors = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({ message: 'Validasyon hatası', errors: validationErrors });
+        }
+        
         res.status(500).json({ message: error.message });
     }
 };
 
-// Search products
+// Ürün sil
+exports.deleteProduct = async (req, res) => {
+    try {
+        const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+        
+        if (!deletedProduct) {
+            return res.status(404).json({ message: 'Silinecek ürün bulunamadı' });
+        }
+        
+        res.json({ message: 'Ürün başarıyla silindi' });
+    } catch (error) {
+        // ID format hatası kontrolü
+        if (error instanceof mongoose.Error.CastError) {
+            return res.status(400).json({ message: 'Geçersiz ürün ID formatı' });
+        }
+        
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Ürün ara
 exports.searchProducts = async (req, res) => {
     try {
-        const { query } = req.query;
+        const searchQuery = req.query.q;
         
-        if (!query) {
+        if (!searchQuery) {
             return res.status(400).json({ message: 'Arama sorgusu gerekli' });
         }
         
-        // Create a regex pattern that is case insensitive
-        const searchPattern = new RegExp(query, 'i');
-        
-        // Search in name, description, and category
+        // İsim, açıklama ve markaya göre arama yap
         const products = await Product.find({
             $or: [
-                { name: searchPattern },
-                { description: searchPattern },
-                { category: searchPattern }
+                { name: { $regex: searchQuery, $options: 'i' } },
+                { description: { $regex: searchQuery, $options: 'i' } },
+                { brand: { $regex: searchQuery, $options: 'i' } }
             ]
-        }).limit(20); // Limit results to 20 products for better performance
+        });
         
         res.json(products);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Öne çıkan ürünleri getir
+exports.getFeaturedProducts = async (req, res) => {
+    try {
+        const featuredProducts = await Product.find({ featured: true }).limit(6);
+        res.json(featuredProducts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Yeni ürünleri getir (en son eklenenleri)
+exports.getNewArrivals = async (req, res) => {
+    try {
+        const newArrivals = await Product.find()
+            .sort({ createdAt: -1 })
+            .limit(6);
+        res.json(newArrivals);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// En çok satanları getir (satış sayısına göre)
+exports.getBestSellers = async (req, res) => {
+    try {
+        const bestSellers = await Product.find()
+            .sort({ salesCount: -1 })
+            .limit(6);
+        res.json(bestSellers);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

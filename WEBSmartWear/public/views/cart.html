@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sepetim | SmartWear</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components/navbar.css">
+    <link rel="stylesheet" href="../css/cart.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar will be loaded here -->
+    <div id="navbar-container"></div>
+
+    <!-- Cart Section -->
+    <section class="cart-section main-content-section">
+        <div class="container">
+            <h2 class="section-title">Sepetim</h2>
+            
+            <div class="cart-container">
+                <div class="cart-items" id="cart-items">
+                    <!-- Cart items will be loaded dynamically -->
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> Sepet yükleniyor...
+                    </div>
+                </div>
+                
+                <div class="cart-summary" id="cart-summary">
+                    <h3>Sipariş Özeti</h3>
+                    <div class="summary-item">
+                        <span>Ara Toplam:</span>
+                        <span id="subtotal">0.00 TL</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Kargo:</span>
+                        <span>Ücretsiz</span>
+                    </div>
+                    <div class="summary-item total">
+                        <span>Toplam:</span>
+                        <span id="total">0.00 TL</span>
+                    </div>
+                    <button class="checkout-btn" id="checkout-btn">Ödeme Yap</button>
+                    <div class="continue-shopping">
+                        <a href="/views/index.html">Alışverişe Devam Et</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
+    <!-- Load Components -->
+    <script src="../js/components/navbar.js"></script>
+    <script>
+        // Load navbar
+        fetch('../components/navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                // Update auth UI after navbar is loaded
+                if (typeof updateNavbarAuthUI === 'function') {
+                    updateNavbarAuthUI();
+                }
+                // Re-initialize search functionality after navbar is loaded
+                if (typeof setupSearchFunctionality === 'function') {
+                    setupSearchFunctionality();
+                }
+                // Activate current page link
+                if (typeof activateCurrentCategoryLink === 'function') {
+                    activateCurrentCategoryLink();
+                }
+            });
+    </script>
+    <script src="../js/cart.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Ödeme düğmesine tıklanınca
+        document.getElementById('checkout-btn').addEventListener('click', function() {
+            alert('Ödeme işlemi şu anda geliştirme aşamasındadır.');
+        });
+    </script>
+</body>
+</html>

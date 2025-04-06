@@ -30,13 +30,15 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mobilsmartwear.ui.components.ProductCard
 import com.example.mobilsmartwear.ui.components.SearchBar
+import com.example.mobilsmartwear.ui.navigation.NavDestination
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
-    onProductClick: (Int) -> Unit,
+    onProductClick: (String) -> Unit,
     onBackClick: () -> Unit,
-    searchViewModel: SearchViewModel = viewModel()
+    searchViewModel: SearchViewModel = viewModel(),
+    navController: androidx.navigation.NavController
 ) {
     val searchResults by searchViewModel.searchResults.collectAsState(initial = emptyList())
     var searchQuery by remember { mutableStateOf("") }
@@ -102,7 +104,10 @@ fun SearchScreen(
                         items(searchResults) { product ->
                             ProductCard(
                                 product = product,
-                                onClick = { onProductClick(product.id) },
+                                onClick = {
+                                    onProductClick(product.id)
+                                    navController.navigate("${NavDestination.ProductDetail.route}/${product.id}")
+                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 8.dp)

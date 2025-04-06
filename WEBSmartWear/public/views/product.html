@@ -1,0 +1,93 @@
+<!DOCTYPE html
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürün Detayı | SmartWear</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components/navbar.css">
+    <link rel="stylesheet" href="../css/components/product-card.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar will be loaded here -->
+    <div id="navbar-container"></div>
+
+    <!-- Product Detail Section -->
+    <section class="product-detail main-content-section">
+        <div class="container">
+            <div class="product-detail-container">
+                <!-- Loading spinner initially -->
+                <div class="loading-container" id="loading-container">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <p>Ürün yükleniyor...</p>
+                </div>
+                
+                <!-- Error container (initially hidden) -->
+                <div class="error-container" id="error-container" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p id="error-message">Ürün yüklenirken bir hata oluştu.</p>
+                    <a href="/views/index.html" class="back-button">Ürünlere Dön</a>
+                </div>
+                
+                <!-- Product details (initially hidden) -->
+                <div class="product-detail-content" id="product-detail-content" style="display: none;">
+                    <div class="product-image">
+                        <img id="product-image" src="" alt="Ürün Görseli">
+                    </div>
+                    <div class="product-info">
+                        <h1 id="product-name" class="product-title"></h1>
+                        <p id="product-price" class="product-price"></p>
+                        <p id="product-description" class="product-description"></p>
+                        
+                        <div class="product-meta">
+                            <span id="product-category" class="product-category"></span>
+                            <span id="product-stock" class="product-stock"></span>
+                        </div>
+                        
+                        <div class="product-actions">
+                            <button id="add-to-cart" class="add-to-cart-btn">
+                                <i class="fas fa-shopping-cart"></i> Sepete Ekle
+                            </button>
+                            <button id="add-to-favorites" class="add-to-favorites-btn">
+                                <i class="far fa-heart"></i> Favorilere Ekle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
+    <!-- Load Components -->
+    <script src="../js/components/navbar.js"></script>
+    <script>
+        // Load navbar
+        fetch('../components/navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-container').innerHTML = data;
+                // Update auth UI after navbar is loaded
+                if (typeof updateNavbarAuthUI === 'function') {
+                    updateNavbarAuthUI();
+                }
+                // Re-initialize search functionality after navbar is loaded
+                if (typeof setupSearchFunctionality === 'function') {
+                    setupSearchFunctionality();
+                }
+                // Activate category link based on current page
+                if (typeof activateCurrentCategoryLink === 'function') {
+                    activateCurrentCategoryLink();
+                }
+            });
+    </script>
+    <script src="../js/cart.js"></script>
+    <script src="../js/product-detail.js"></script>
+    <script src="../js/auth.js"></script>
+</body>
+</html> 

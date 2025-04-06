@@ -18,7 +18,11 @@ const productSchema = new mongoose.Schema({
     category: {
         type: String,
         required: true,
-        enum: ['Kadın', 'Erkek', 'Aksesuar']
+        enum: ['Kadın', 'Erkek']
+    },
+    subcategory: {
+        type: String,
+        default: ''
     },
     image: {
         type: String,
@@ -32,6 +36,18 @@ const productSchema = new mongoose.Schema({
     featured: {
         type: Boolean,
         default: false
+    },
+    color: {
+        type: String,
+        default: ''
+    },
+    size: {
+        type: String,
+        default: ''
+    },
+    brand: {
+        type: String,
+        default: 'SmartWear'
     },
     createdAt: {
         type: Date,

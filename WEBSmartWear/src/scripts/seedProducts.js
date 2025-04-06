@@ -8,6 +8,7 @@ const sampleProducts = [
         description: "Modern kesimli, rahat ve şık beyaz blazer",
         price: 1299.99,
         category: "Kadın",
+        subcategory: "ceket",
         image: "/images/products/blazer.jpg",
         stock: 15,
         featured: true
@@ -17,6 +18,8 @@ const sampleProducts = [
         description: "Yüksek kaliteli slim fit siyah jean",
         price: 799.99,
         category: "Erkek",
+        subcategory: "kot-pantolon",
+
         image: "/images/products/jean.jpg",
         stock: 20,
         featured: true
@@ -25,7 +28,8 @@ const sampleProducts = [
         name: "Deri Cüzdan",
         description: "El yapımı deri cüzdan",
         price: 399.99,
-        category: "Aksesuar",
+        category: "Erkek",
+        subcategory: "cüzdan",
         image: "/images/products/wallet.jpg",
         stock: 30,
         featured: true
@@ -35,6 +39,7 @@ const sampleProducts = [
         description: "Rahat kesimli pamuklu t-shirt",
         price: 299.99,
         category: "Kadın",
+        subcategory: "tshirt",
         image: "/images/products/tshirt.jpg",
         stock: 25,
         featured: true
@@ -44,6 +49,7 @@ const sampleProducts = [
         description: "Klasik kesimli deri ceket",
         price: 2499.99,
         category: "Erkek",
+        subcategory: "ceket",
         image: "/images/products/leather-jacket.jpg",
         stock: 10,
         featured: true
@@ -52,10 +58,21 @@ const sampleProducts = [
         name: "Minimalist Saat",
         description: "Modern tasarımlı minimalist saat",
         price: 899.99,
-        category: "Aksesuar",
+        category: "Erkek",
+        subcategory: "saat",
         image: "/images/products/watch.jpg",
         stock: 15,
         featured: true
+    },
+    {
+        name: "Mavi Kot Pantolon",
+        description: "Rahat kesimli mavi kot pantolon",
+        price: 599.99,
+        category: "Erkek",
+        subcategory: "kot-pantolon",
+        image: "/images/products/jean.jpg",
+        stock: 25,
+        featured: false
     }
 ];
 
