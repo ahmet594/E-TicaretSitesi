@@ -10,25 +10,31 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,11 +50,15 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mobilsmartwear.R
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
-    onLoginClick: () -> Unit = {},
+    authViewModel: AuthViewModel = viewModel(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    onLoginSuccess: () -> Unit = {},
     onRegisterClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
     onContinueWithoutLogin: () -> Unit = {}
@@ -56,6 +66,26 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    
+    val authState by authViewModel.authState.collectAsState()
+    
+    // Giriş başarılıysa navigasyon işlemi
+    LaunchedEffect(authState) {
+        when (authState) {
+            is AuthUiState.Success -> {
+                onLoginSuccess()
+            }
+            is AuthUiState.Error -> {
+                val errorMessage = (authState as AuthUiState.Error).message
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(errorMessage)
+                }
+                authViewModel.clearError()
+            }
+            else -> { /* İşlem yok */ }
+        }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -108,7 +138,8 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Email
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = authState !is AuthUiState.Loading
             )
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -125,7 +156,10 @@ fun LoginScreen(
                     )
                 },
                 trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    IconButton(
+                        onClick = { passwordVisible = !passwordVisible },
+                        enabled = authState !is AuthUiState.Loading
+                    ) {
                         val visibilityIcon = if (passwordVisible) {
                             ImageVector.vectorResource(id = R.drawable.ic_visibility_off)
                         } else {
@@ -141,7 +175,8 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Password
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = authState !is AuthUiState.Loading
             )
             
             // Şifremi unuttum bağlantısı
@@ -151,7 +186,10 @@ fun LoginScreen(
                     .padding(vertical = 8.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
-                TextButton(onClick = onForgotPasswordClick) {
+                TextButton(
+                    onClick = onForgotPasswordClick,
+                    enabled = authState !is AuthUiState.Loading
+                ) {
                     Text(
                         text = "Şifremi Unuttum",
                         color = MaterialTheme.colorScheme.primary,
@@ -164,17 +202,34 @@ fun LoginScreen(
 
             // Giriş yap butonu
             Button(
-                onClick = onLoginClick,
+                onClick = { 
+                    if (email.isNotEmpty() && password.isNotEmpty()) {
+                        authViewModel.login(email, password) 
+                    } else {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Lütfen email ve şifre giriniz")
+                        }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                enabled = authState !is AuthUiState.Loading
             ) {
-                Text(
-                    text = "Giriş Yap",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                if (authState is AuthUiState.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Giriş Yap",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -184,7 +239,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.weight(1f),
                     color = Color.Gray.copy(alpha = 0.5f)
                 )
@@ -194,7 +249,7 @@ fun LoginScreen(
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.weight(1f),
                     color = Color.Gray.copy(alpha = 0.5f)
                 )
@@ -208,7 +263,8 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                enabled = authState !is AuthUiState.Loading
             ) {
                 Text(
                     text = "Giriş Yapmadan Devam Et",
@@ -230,7 +286,10 @@ fun LoginScreen(
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
-                TextButton(onClick = onRegisterClick) {
+                TextButton(
+                    onClick = onRegisterClick,
+                    enabled = authState !is AuthUiState.Loading
+                ) {
                     Text(
                         text = "Kayıt Ol",
                         color = MaterialTheme.colorScheme.primary,

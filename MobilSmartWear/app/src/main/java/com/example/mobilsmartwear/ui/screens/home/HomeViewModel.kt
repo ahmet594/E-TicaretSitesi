@@ -5,18 +5,15 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobilsmartwear.data.model.Product
-import com.example.mobilsmartwear.data.remote.NetworkResult
 import com.example.mobilsmartwear.data.repository.ProductRepository
 import com.example.mobilsmartwear.di.AppModule
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
     
@@ -32,10 +29,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _featuredProducts = MutableStateFlow<List<Product>>(emptyList())
     val featuredProducts: StateFlow<List<Product>> = _featuredProducts.asStateFlow()
     
-    // New Arrivals
-    private val _newArrivals = MutableStateFlow<List<Product>>(emptyList())
-    val newArrivals: StateFlow<List<Product>> = _newArrivals.asStateFlow()
-    
     // Selected Category
     private val _selectedCategory = MutableStateFlow("Anasayfa")
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
@@ -47,10 +40,39 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
     
+    // Otomatik yenileme için Job
+    private var autoRefreshJob: Job? = null
+    
     init {
         Log.d(TAG, "HomeViewModel initialized")
+        // Başlangıçta ürünleri yükle
         loadProducts()
-        loadFeaturedProducts()
+        
+        // API'den düzenli olarak yenileme yapmak için otomatik yenileme başlat
+        startAutoRefresh()
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        stopAutoRefresh()
+    }
+    
+    // API'den düzenli olarak veri almak için otomatik yenileme
+    private fun startAutoRefresh() {
+        stopAutoRefresh()
+        
+        autoRefreshJob = viewModelScope.launch {
+            while(true) {
+                delay(30000) // 30 saniye bekle
+                Log.d(TAG, "Ürünler API'den otomatik yenileniyor")
+                loadProducts()
+            }
+        }
+    }
+    
+    private fun stopAutoRefresh() {
+        autoRefreshJob?.cancel()
+        autoRefreshJob = null
     }
     
     fun loadProducts() {
@@ -60,25 +82,26 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             
             try {
                 productRepository.getAllProducts().collect { products ->
+                    Log.d(TAG, "Ürünler başarıyla yüklendi: ${products.size} ürün")
                     _uiState.update { 
                         it.copy(
                             isLoading = false,
                             products = products,
-                            featuredProducts = selectFeaturedProducts(products),
-                            error = null,
-                            isFromCache = false
+                            featuredProducts = getFeaturedProductsFromList(products),
+                            error = null
                         )
                     }
                     _isLoading.value = false
+                    
+                    // Öne çıkan ürünleri de yükle
+                    loadFeaturedProducts()
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Exception while loading products", e)
+                Log.e(TAG, "Ürünler yüklenirken hata oluştu", e)
                 _uiState.update { 
                     it.copy(
                         isLoading = false,
-                        products = emptyList(),
-                        error = "Ürünler yüklenirken bir hata oluştu: ${e.message}",
-                        isFromCache = false
+                        error = "Ürünler yüklenirken bir hata oluştu: ${e.message}"
                     )
                 }
                 _isLoading.value = false
@@ -86,37 +109,34 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     
-    fun loadFeaturedProducts() {
+    fun refreshProducts() {
+        loadProducts()
+    }
+    
+    private fun loadFeaturedProducts() {
         viewModelScope.launch {
             try {
-                productRepository.getFeaturedProducts().collect { products ->
-                    _featuredProducts.value = products
+                productRepository.getFeaturedProducts().collect { featured ->
+                    _featuredProducts.value = featured
+                    Log.d(TAG, "Öne çıkan ürünler yüklendi: ${featured.size}")
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Exception while loading featured products", e)
+                Log.e(TAG, "Öne çıkan ürünler yüklenirken hata oluştu", e)
             }
         }
     }
     
     fun selectCategory(category: String) {
-        Log.d(TAG, "Selected category: $category")
+        Log.d(TAG, "Seçilen kategori: $category")
         
-        // Seçilen kategoriyi güncelle ve o kategorideki ürünleri yükle
         _uiState.update { it.copy(selectedCategory = category) }
         loadProductsByCategory(category)
     }
     
     fun loadProductsByCategory(category: String) {
         viewModelScope.launch {
-            Log.d(TAG, "Loading products for category: $category")
+            Log.d(TAG, "Kategori için ürünler yükleniyor: $category")
             
-            // Eğer "Anasayfa" seçilmişse, tüm ürünleri yükle
-            if (category == "Anasayfa") {
-                loadProducts()
-                return@launch
-            }
-            
-            // UI'ı yükleniyor durumuna güncelle
             _isLoading.value = true
             _uiState.update { it.copy(isLoading = true, error = null) }
             
@@ -126,20 +146,17 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         it.copy(
                             isLoading = false,
                             products = products,
-                            error = null,
-                            isFromCache = false
+                            error = if (products.isEmpty()) "Bu kategoride ürün bulunamadı" else null
                         )
                     }
                     _isLoading.value = false
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Exception while loading products for category $category", e)
+                Log.e(TAG, "$category kategorisi için ürünler yüklenirken hata oluştu", e)
                 _uiState.update { 
                     it.copy(
                         isLoading = false,
-                        products = emptyList(),
-                        error = "Kategori için ürünler yüklenirken bir hata oluştu: ${e.message}",
-                        isFromCache = false
+                        error = "Kategori için ürünler yüklenirken bir hata oluştu: ${e.message}"
                     )
                 }
                 _isLoading.value = false
@@ -149,7 +166,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     
     fun searchProducts(query: String) {
         viewModelScope.launch {
-            Log.d(TAG, "Searching for: $query")
+            Log.d(TAG, "Ürün araması: $query")
             
             _isLoading.value = true
             _uiState.update { it.copy(isLoading = true, error = null) }
@@ -160,20 +177,17 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         it.copy(
                             isLoading = false,
                             products = products,
-                            error = null,
-                            isFromCache = false
+                            error = if (products.isEmpty()) "Aramanızla eşleşen ürün bulunamadı" else null
                         )
                     }
                     _isLoading.value = false
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Exception while searching products", e)
+                Log.e(TAG, "Ürün araması yapılırken hata oluştu", e)
                 _uiState.update { 
                     it.copy(
                         isLoading = false,
-                        products = emptyList(),
-                        error = "Ürünler aranırken bir hata oluştu: ${e.message}",
-                        isFromCache = false
+                        error = "Ürünler aranırken bir hata oluştu: ${e.message}"
                     )
                 }
                 _isLoading.value = false
@@ -185,24 +199,15 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(error = null) }
     }
     
-    private fun selectFeaturedProducts(products: List<Product>): List<Product> {
-        // Ürünlerden bazılarını öne çıkarılanlar olarak seç
-        return if (products.size <= 5) {
-            products
-        } else {
-            products.shuffled().take(5)
-        }
+    private fun getFeaturedProductsFromList(products: List<Product>): List<Product> {
+        return products.filter { it.featured }
     }
     
-    /**
-     * Belirli bir ürünü siler
-     */
     fun deleteProduct(productId: String) {
         viewModelScope.launch {
-            Log.d(TAG, "Deleting product with id: $productId")
+            Log.d(TAG, "Ürün siliniyor: $productId")
             
             try {
-                // UI'dan ürünü kaldır
                 _uiState.update { currentState ->
                     val updatedProducts = currentState.products.filter { it.id != productId }
                     val updatedFeaturedProducts = currentState.featuredProducts.filter { it.id != productId }
@@ -213,28 +218,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error deleting product: ${e.message}", e)
-            }
-        }
-    }
-    
-    /**
-     * Tüm ürünleri UI'dan temizler
-     */
-    fun deleteAllProducts() {
-        viewModelScope.launch {
-            Log.d(TAG, "Deleting all products")
-            
-            try {
-                // UI'ı temizle
-                _uiState.update { currentState ->
-                    currentState.copy(
-                        products = emptyList(),
-                        featuredProducts = emptyList()
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error deleting all products: ${e.message}", e)
+                Log.e(TAG, "Ürün silinirken hata oluştu: ${e.message}", e)
             }
         }
     }
@@ -245,8 +229,7 @@ data class HomeUiState(
     val products: List<Product> = emptyList(),
     val featuredProducts: List<Product> = emptyList(),
     val selectedCategory: String = "Anasayfa",
-    val error: String? = null,
-    val isFromCache: Boolean = false
+    val error: String? = null
 )
 
 /**

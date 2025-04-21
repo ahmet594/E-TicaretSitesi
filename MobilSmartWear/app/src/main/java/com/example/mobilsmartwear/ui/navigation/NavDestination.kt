@@ -2,12 +2,17 @@ package com.example.mobilsmartwear.ui.navigation
 
 sealed class NavDestination(val route: String) {
     object Home : NavDestination("home")
-    object ProductDetail : NavDestination("product_detail")
-    object Cart : NavDestination("cart")
-    object Checkout : NavDestination("checkout")
+    object ProductDetail : NavDestination("product_detail/{productId}") {
+        fun createRoute(productId: String): String {
+            return "product_detail/$productId"
+        }
+    }
     object Search : NavDestination("search")
-    object Profile : NavDestination("profile")
-    object Orders : NavDestination("orders")
+    object Cart : NavDestination("cart")
     object Favorites : NavDestination("favorites")
-    object Settings : NavDestination("settings")
+    object Profile : NavDestination("profile")
+    
+    // Kimlik doğrulama ekranları
+    object Login : NavDestination("login")
+    object Register : NavDestination("register")
 } 

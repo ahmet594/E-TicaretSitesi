@@ -9,13 +9,16 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
+/**
+ * API istekleri için Retrofit istemcisi
+ */
 object RetrofitClient {
     private const val TAG = "RetrofitClient"
     
-    // Backend API adresleri
-    private const val LOCALHOST = "http://localhost:3000/api/"
-    private const val EMULATOR = "http://10.0.2.2:3000/api/" // Emülatör için localhost 10.0.2.2 IP'sidir
-    private const val PUBLIC_API = "https://mobilsmartwear-api.onrender.com/api/" // Eğer varsa public API adresiniz
+    // Backend API adresleri - localhost sabit 3000 portu olarak tanımlandı
+    private const val LOCALHOST = "http://localhost:3000/"
+    private const val EMULATOR = "http://10.0.2.2:3000/" // Emülatör için localhost 10.0.2.2 IP'sidir
+    private const val PUBLIC_API = "http://192.168.43.3:3000/" // Şirket local network IP'si (gerekirse değiştirilmeli)
     
     private const val TIMEOUT_SECONDS = 30L
     
@@ -30,35 +33,10 @@ object RetrofitClient {
         .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .build()
     
-    // Bu metodu çağırarak hangi cihazda olduğumuzu belirleyelim
+    // Kullanılacak URL'yi belirler
     private fun getBaseUrl(): String {
-        Log.d(TAG, "Cihaz tipi belirleniyor...")
-        
-        // Emülatörde çalışıyor muyuz?
-        val isEmulator = Build.FINGERPRINT.startsWith("generic") ||
-                Build.FINGERPRINT.startsWith("unknown") ||
-                Build.MODEL.contains("google_sdk") ||
-                Build.MODEL.contains("Emulator") ||
-                Build.MODEL.contains("Android SDK built for x86") ||
-                Build.MANUFACTURER.contains("Genymotion") ||
-                (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic")) ||
-                "google_sdk" == Build.PRODUCT
-        
-        // Public API'yi öncelikli olarak kullanıyoruz
-        // Eğer public bir API sunucunuz varsa bunu kullanabilirsiniz
-        val baseUrl = PUBLIC_API
-        
-        // Alternatif olarak emülatör ve gerçek cihaz ayrımı yapabilirsiniz
-        // val baseUrl = if (isEmulator) {
-        //     Log.d(TAG, "Emülatör tespit edildi, 10.0.2.2 adresi kullanılıyor")
-        //     EMULATOR
-        // } else {
-        //     Log.d(TAG, "Gerçek cihaz tespit edildi, localhost adresi kullanılıyor")
-        //     LOCALHOST
-        // }
-        
-        Log.d(TAG, "Kullanılan API adresi: $baseUrl")
-        return baseUrl
+        Log.d(TAG, "API adresi olarak PUBLIC_API kullanılıyor")
+        return PUBLIC_API // Cihaz tipine göre farklı URL'ler kullanılabilir
     }
     
     private val retrofit = Retrofit.Builder()
@@ -67,6 +45,18 @@ object RetrofitClient {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
     
-    val productApiService: ProductApiService = retrofit.create(ProductApiService::class.java)
-    val authApiService: AuthApiService = retrofit.create(AuthApiService::class.java)
+    val apiService: ApiService = retrofit.create(ApiService::class.java)
+    
+    // Resim URL'lerini oluşturmak için yardımcı metod
+    fun getImageUrl(imagePath: String): String {
+        if (imagePath.startsWith("http")) {
+            return imagePath
+        }
+        
+        val baseUrl = getBaseUrl()
+        return when {
+            imagePath.startsWith("/") -> "$baseUrl${imagePath.substring(1)}"
+            else -> "$baseUrl$imagePath"
+        }
+    }
 } 

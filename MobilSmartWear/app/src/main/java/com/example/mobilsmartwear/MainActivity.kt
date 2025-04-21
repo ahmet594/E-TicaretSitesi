@@ -11,16 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.Icon
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +45,8 @@ import com.example.mobilsmartwear.ui.screens.auth.ForgotPasswordScreen
 import com.example.mobilsmartwear.ui.screens.auth.LoginScreen
 import com.example.mobilsmartwear.ui.screens.auth.RegisterScreen
 import com.example.mobilsmartwear.ui.screens.favorites.FavoritesScreen
+import com.example.mobilsmartwear.ui.components.BottomNavigationBar
+import com.example.mobilsmartwear.ui.navigation.NavGraph
 
 class MainActivity : ComponentActivity() {
     
@@ -72,8 +72,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        Log.d(TAG, "AppNavHost başlatılıyor...")
-                        AppNavHost()
+                        MainAppContent()
                     }
                 }
             }
@@ -86,89 +85,80 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavHost(
-    navController: NavHostController = rememberNavController(),
-    startDestination: String = "login"
-) {
-    NavHost(
-        navController = navController,
-        startDestination = startDestination
-    ) {
-        composable("login") {
-            LoginScreen(
-                onLoginClick = { 
-                    navController.navigate("home")
-                },
-                onRegisterClick = { navController.navigate("register") },
-                onForgotPasswordClick = { navController.navigate("forgot_password") },
-                onContinueWithoutLogin = { navController.navigate("home") }
-            )
+fun MainAppContent() {
+    val navController = rememberNavController()
+    
+    // Bottom bar öğelerini tanımla
+    val navigationItems = listOf(
+        BottomNavigationItem(
+            name = "Ana Sayfa",
+            route = NavDestination.Home.route,
+            icon = Icons.Default.Home
+        ),
+        BottomNavigationItem(
+            name = "Arama",
+            route = NavDestination.Search.route,
+            icon = Icons.Outlined.Search
+        ),
+        BottomNavigationItem(
+            name = "Favoriler",
+            route = NavDestination.Favorites.route,
+            icon = Icons.Outlined.FavoriteBorder
+        ),
+        BottomNavigationItem(
+            name = "Sepet",
+            route = NavDestination.Cart.route,
+            icon = Icons.Default.ShoppingCart
+        ),
+        BottomNavigationItem(
+            name = "Profil",
+            route = NavDestination.Profile.route,
+            icon = Icons.Default.Person
+        )
+    )
+    
+    // Login ve Register ekranlarında bottom bar gösterilmez
+    val shouldShowBottomBar = true
+    
+    // Scaffold ile sayfa yapısını oluştur
+    Scaffold(
+        bottomBar = {
+            if (shouldShowBottomBar) {
+                BottomNavigationBar(
+                    items = navigationItems,
+                    currentRoute = NavDestination.Home.route,
+                    onItemClick = { route ->
+                        navController.navigate(route) {
+                            navController.graph.startDestinationRoute?.let { homeRoute ->
+                                popUpTo(homeRoute) {
+                                    saveState = true
+                                }
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
         }
-        
-        composable("register") {
-            RegisterScreen(
-                onRegisterClick = { 
-                    navController.navigate("home")
-                },
-                onLoginClick = { navController.navigate("login") },
-                onTermsClick = { /* İleride kullanım şartları ekranına gidecek */ },
-                onPrivacyClick = { /* İleride gizlilik politikası ekranına gidecek */ }
-            )
-        }
-        
-        composable("forgot_password") {
-            ForgotPasswordScreen(
-                onBackClick = { navController.popBackStack() },
-                onSendResetLinkClick = { /* Şimdilik işlev yok */ },
-                onLoginClick = { navController.navigate("login") { popUpTo("login") { inclusive = true } } }
-            )
-        }
-        
-        composable("home") {
-            HomeScreen(navController = navController)
-        }
-        
-        // Ürün detay ekranı
-        composable(
-            route = "${NavDestination.ProductDetail.route}/{productId}",
-            arguments = listOf(navArgument("productId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val productId = backStackEntry.arguments?.getString("productId") ?: ""
-            ProductDetailScreen(
-                productId = productId,
-                onBackClick = { navController.popBackStack() },
-                onAddToCart = { 
-                    // Snackbar ile bildirim gösterip sepet ekranına gitme
-                    navController.navigate(NavDestination.Cart.route)
-                }
-            )
-        }
-        
-        // Sepet ekranı
-        composable(route = NavDestination.Cart.route) {
-            CartScreen(
-                onNavigateToCheckout = {
-                    // Ödeme ekranına yönlendirme - ileride eklenecek
-                }
-            )
-        }
-        
-        // Favoriler ekranı
-        composable(route = NavDestination.Favorites.route) {
-            FavoritesScreen(
-                onProductClick = { product ->
-                    navController.navigate("${NavDestination.ProductDetail.route}/${product.id}")
-                },
-                onBackClick = { navController.popBackStack() }
-            )
-        }
+    ) { paddingValues ->
+        NavGraph(
+            navController = navController,
+            paddingValues = paddingValues
+        )
     }
 }
 
+data class BottomNavigationItem(
+    val name: String,
+    val route: String,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector
+)
+
 @Preview(showBackground = true)
 @Composable
-fun AppNavHostPreview() {
+fun MainAppContentPreview() {
     MobilSmartWearTheme {
-        AppNavHost()
+        MainAppContent()
     }
 }
