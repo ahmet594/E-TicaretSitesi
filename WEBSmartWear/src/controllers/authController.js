@@ -91,4 +91,29 @@ exports.getCurrentUser = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+};
+
+// Update user profile
+exports.updateProfile = async (req, res) => {
+    try {
+        const { name, address } = req.body;
+        
+        const updateData = {};
+        if (name) updateData.name = name;
+        if (address) updateData.address = address;
+        
+        const user = await User.findByIdAndUpdate(
+            req.userId,
+            updateData,
+            { new: true }
+        ).select('-password');
+        
+        if (!user) {
+            return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
+        }
+        
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 }; 

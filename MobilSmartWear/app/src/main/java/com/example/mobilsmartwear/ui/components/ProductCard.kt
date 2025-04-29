@@ -6,9 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,7 +32,10 @@ private const val TAG = "ProductCard"
 fun ProductCard(
     product: Product,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onFavoriteClick: () -> Unit = {},
+    isFavorite: Boolean = false,
+    showFavoriteButton: Boolean = false
 ) {
     val context = LocalContext.current
     Log.d(TAG, "Rendering product: ${product.id}, ${product.name}, Image URL: ${product.imageUrl}")
@@ -104,6 +109,28 @@ fun ProductCard(
                         .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
                     contentScale = ContentScale.Crop
                 )
+                
+                // Favori butonu sadece FavoritesScreen'de gösterilecek
+                if (showFavoriteButton) {
+                    IconButton(
+                        onClick = onFavoriteClick,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(4.dp)
+                            .size(32.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                shape = RoundedCornerShape(50)
+                            )
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = if (isFavorite) "Favorilerden Çıkar" else "Favorilere Ekle",
+                            tint = if (isFavorite) Color.Red else Color.Gray,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
                 
                 // Stok durumu
                 if (!product.hasStock()) {

@@ -32,17 +32,11 @@
                         <button class="profile-nav-item" data-tab="orders">
                             <i class="fas fa-shopping-bag"></i> Siparişlerim
                         </button>
-                        <button class="profile-nav-item" data-tab="coupons">
-                            <i class="fas fa-tags"></i> Kuponlarım
-                        </button>
                         <button class="profile-nav-item" data-tab="favorites">
                             <i class="fas fa-heart"></i> Favorilerim
                         </button>
-                        <button class="profile-nav-item" data-tab="reviews">
-                            <i class="fas fa-star"></i> Değerlendirmelerim
-                        </button>
                         <button class="profile-nav-item" data-tab="address">
-                            <i class="fas fa-map-marker-alt"></i> Adreslerim
+                            <i class="fas fa-map-marker-alt"></i> Adres
                         </button>
                         <button class="profile-nav-item" data-tab="password">
                             <i class="fas fa-lock"></i> Şifre Değiştir
@@ -79,18 +73,6 @@
                         </div>
                     </div>
                     
-                    <!-- Coupons Tab -->
-                    <div class="profile-tab" id="coupons-tab">
-                        <h3>Kuponlarım</h3>
-                        <div id="coupons-list" class="coupons-list">
-                            <p class="empty-state">Henüz kuponunuz bulunmamaktadır.</p>
-                            <div class="coupon-tip">
-                                <i class="fas fa-info-circle"></i>
-                                <p>Bültenimize abone olarak ve sosyal medyada bizi takip ederek özel kuponlar kazanabilirsiniz.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
                     <!-- Favorites Tab -->
                     <div class="profile-tab" id="favorites-tab">
                         <h3>Favorilerim</h3>
@@ -99,45 +81,25 @@
                         </div>
                     </div>
                     
-                    <!-- Reviews Tab -->
-                    <div class="profile-tab" id="reviews-tab">
-                        <h3>Değerlendirmelerim</h3>
-                        <div id="reviews-list" class="reviews-list">
-                            <p class="empty-state">Henüz değerlendirmeniz bulunmamaktadır.</p>
-                        </div>
-                    </div>
-                    
                     <!-- Address Tab -->
                     <div class="profile-tab" id="address-tab">
-                        <h3>Adreslerim</h3>
-                        <div id="address-list" class="address-list">
-                            <p class="empty-state">Henüz kayıtlı adresiniz bulunmamaktadır.</p>
+                        <h3>Adres Bilgilerim</h3>
+                        <div id="address-display" class="address-display">
+                            <p class="empty-state" id="no-address-message">Henüz kayıtlı adresiniz bulunmamaktadır.</p>
+                            <div id="address-content" style="display: none;">
+                                <p id="address-value"></p>
+                                <button id="edit-address-btn" class="secondary-button">Düzenle</button>
+                            </div>
                         </div>
-                        <button id="add-address-btn" class="auth-button">Yeni Adres Ekle</button>
                         <div id="address-form-container" class="address-form-container" style="display: none;">
                             <form id="address-form">
-                                <div class="form-group">
-                                    <label for="address-title">Adres Başlığı</label>
-                                    <input type="text" id="address-title" name="title">
-                                </div>
                                 <div class="form-group">
                                     <label for="address-text">Adres</label>
                                     <textarea id="address-text" name="address" rows="3"></textarea>
                                 </div>
-                                <div class="form-group">
-                                    <label for="address-city">Şehir</label>
-                                    <input type="text" id="address-city" name="city">
-                                </div>
-                                <div class="form-group">
-                                    <label for="address-postal">Posta Kodu</label>
-                                    <input type="text" id="address-postal" name="postal">
-                                </div>
-                                <div class="form-group">
-                                    <label for="address-phone">Telefon</label>
-                                    <input type="tel" id="address-phone" name="phone">
-                                </div>
                                 <button type="submit" class="auth-button">Adresi Kaydet</button>
                                 <button type="button" id="cancel-address-btn" class="secondary-button">İptal</button>
+                                <div id="address-message" class="form-message"></div>
                             </form>
                         </div>
                     </div>

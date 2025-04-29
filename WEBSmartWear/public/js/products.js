@@ -9,15 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentPath = window.location.pathname;
     
     // Determine initial category based on page URL
-    if (currentPath.includes('women.html')) {
-        currentCategory = 'Kadın';
-        loadProductsByCategory('Kadın');
-        // Kadın sayfasında filtreleri gösterme
+    if (currentPath.includes('clothing.html')) {
+        currentCategory = 'Giyim';
+        loadProductsByCategory('Giyim');
+        // Giyim sayfasında filtreleri gösterme
         hideOtherCategoryFilters();
-    } else if (currentPath.includes('men.html')) {
-        currentCategory = 'Erkek';
-        loadProductsByCategory('Erkek');
-        // Erkek sayfasında filtreleri gösterme
+    } else if (currentPath.includes('shoes.html')) {
+        currentCategory = 'Ayakkabı';
+        loadProductsByCategory('Ayakkabı');
+        // Ayakkabı sayfasında filtreleri gösterme
+        hideOtherCategoryFilters();
+    } else if (currentPath.includes('accessories.html')) {
+        currentCategory = 'Aksesuar';
+        loadProductsByCategory('Aksesuar');
+        // Aksesuar sayfasında filtreleri gösterme
         hideOtherCategoryFilters();
     } else {
         // Default to all products for other pages
@@ -88,6 +93,7 @@ function displayProducts(products) {
                     <h3 class="product-title">${product.name}</h3>
                     <div class="product-details">
                         <div class="product-category">${getCategoryDisplayName(product.category)}</div>
+                        ${product.subcategory ? `<div class="product-subcategory">${product.subcategory}</div>` : ''}
                         ${product.color ? `<div class="product-color">Renk: ${product.color}</div>` : ''}
                         ${product.size ? `<div class="product-size">Beden: ${product.size}</div>` : ''}
                     </div>
@@ -118,7 +124,6 @@ function displayProducts(products) {
 // Kategorilerin görünen adlarını döndürür
 function getCategoryDisplayName(category) {
     const categoryDisplayNames = {
-        'Kadın': 'Kadın',
         'Erkek': 'Erkek'
     };
     

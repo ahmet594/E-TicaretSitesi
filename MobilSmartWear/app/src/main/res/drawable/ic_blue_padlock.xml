@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Parlaklık efekti -->
+    <path
+        android:fillColor="#E6EEF8"
+        android:pathData="M12,3m-1.5,0a1.5,1.5 0,1 0,3 0a1.5,1.5 0,1 0,-3 0" />
+
+    <!-- Asma kilit gövdesi - daha yuvarlak hatlar -->
+    <path
+        android:fillColor="#001F54"
+        android:pathData="M7,11c0,-0.55 0.45,-1 1,-1h8c0.55,0 1,0.45 1,1v7c0,2.21 -1.79,4 -4,4h-2c-2.21,0 -4,-1.79 -4,-4V11z" />
+
+    <!-- Asma kilit kolu - daha kalın -->
+    <path
+        android:fillColor="#001F54"
+        android:pathData="M16,11V7c0,-2.21 -1.79,-4 -4,-4S8,4.79 8,7v4" />
+
+    <!-- Kilit detayları - parlak kenarlar -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M7,11c0,-0.55 0.45,-1 1,-1h8c0.55,0 1,0.45 1,1v7c0,2.21 -1.79,4 -4,4h-2c-2.21,0 -4,-1.79 -4,-4V11z"
+        android:strokeColor="#4D88CC"
+        android:strokeWidth="0.3" />
+
+    <!-- Kilit deliği - daha modern -->
+    <path
+        android:fillColor="#4D88CC"
+        android:pathData="M12,14m-1.5,0a1.5,1.5 0,1 1,3 0a1.5,1.5 0,1 1,-3 0" />
+    
+    <!-- Anahtar giriş çizgisi -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M12,15L12,18"
+        android:strokeColor="#4D88CC"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round" />
+</vector> 

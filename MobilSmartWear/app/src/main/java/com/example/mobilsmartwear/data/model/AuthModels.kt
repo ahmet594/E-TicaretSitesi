@@ -39,5 +39,6 @@ data class User(
     val role: String = "user",
     val createdAt: String? = null,
     @SerializedName("avatar")
-    val avatarUrl: String? = null
+    val avatarUrl: String? = null,
+    val address: String? = null
 ) 

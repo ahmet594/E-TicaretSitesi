@@ -17,24 +17,50 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 // Primary and Secondary colors
-val Primary = Color(0xFF3F51B5) // Indigo
-val Secondary = Color(0xFFFF9800) // Orange
+val Primary = Color(0xFF1B3A5B)      // Zengin lacivert
+val Secondary = Color(0xFFD4AF37)     // Altın
+val Navy900 = Color(0xFF0F233A)      // Koyu lacivert
+val Navy800 = Color(0xFF1B3A5B)      // Ana lacivert
+val Navy700 = Color(0xFF264B73)      // Orta lacivert
+val Navy600 = Color(0xFF315C8C)      // Açık lacivert
+val Gold500 = Color(0xFFD4AF37)      // Altın
+val Gold400 = Color(0xFFDCBD5C)      // Açık altın
+val Gold300 = Color(0xFFE5CC82)      // Çok açık altın
+val Gray900 = Color(0xFF212121)      // En koyu gri
+val Gray100 = Color(0xFFF5F5F5)      // En açık gri
+val Gray50 = Color(0xFFFAFAFA)       // Neredeyse beyaz
+val Error = Color(0xFFB71C1C)        // Koyu kırmızı
+val Success = Color(0xFF2E7D32)      // Koyu yeşil
 
-private val LightColors = lightColorScheme(
-    primary = Primary,
+private val LightColorScheme = lightColorScheme(
+    primary = NavyBlue,
     onPrimary = Color.White,
-    secondary = Secondary,
+    primaryContainer = Navy600,
+    onPrimaryContainer = Color.White,
+    secondary = Gold500,
     onSecondary = Color.Black,
-    background = Color.White,
-    onBackground = Color.Black,
+    secondaryContainer = Gold300,
+    onSecondaryContainer = Gray900,
+    background = Gray50,
+    onBackground = Gray900,
     surface = Color.White,
-    onSurface = Color.Black
+    onSurface = Gray900,
+    surfaceVariant = Gray100,
+    onSurfaceVariant = Navy700,
+    error = Error,
+    onError = Color.White,
+    outline = Navy600,
+    outlineVariant = Gold400,
+    scrim = Color(0x52000000),
+    inverseSurface = Navy900,
+    inverseOnSurface = Color.White,
+    inversePrimary = Gold300
 )
 
-private val DarkColors = darkColorScheme(
-    primary = Primary,
+private val DarkColorScheme = darkColorScheme(
+    primary = NavyBlue,
     onPrimary = Color.White,
-    secondary = Secondary,
+    secondary = Gold500,
     onSecondary = Color.Black,
     background = Color(0xFF121212),
     onBackground = Color.White,
@@ -44,25 +70,19 @@ private val DarkColors = darkColorScheme(
 
 @Composable
 fun MobilSmartWearTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, // Dinamik renkleri devre dışı bırakıyoruz
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColors
-        else -> LightColors
-    }
+    val colorScheme = LightColorScheme
+    
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            window.statusBarColor = colorScheme.primary.toArgb() // Status bar'ı lacivert yap
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false // Status bar ikonlarını beyaz yap
         }
     }
 

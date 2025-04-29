@@ -20,9 +20,49 @@ body {
     color: var(--text-color);
 }
 
-/* Tüm ana içerik bölümleri için genel bir sınıf oluşturalım */
+/* Footer Styles */
+footer.bg-dark {
+    background-color: var(--primary-color) !important;
+    margin-top: 50px;
+}
+
+footer h5 {
+    font-size: 1.2rem;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 10px;
+    display: inline-block;
+}
+
+footer a {
+    transition: color 0.3s;
+}
+
+footer a:hover {
+    color: var(--accent-color) !important;
+}
+
+footer .fas, footer .fab {
+    margin-right: 10px;
+}
+
+footer hr {
+    border-color: rgba(255,255,255,0.1);
+}
+
+footer .list-inline-item {
+    margin-right: 15px;
+}
+
+footer .list-inline-item a:hover {
+    transform: translateY(-3px);
+    display: inline-block;
+}
+
+/* Main content section with proper margin for navbar */
 .main-content-section {
-    margin-top: 80px; /* Tüm ana içerik bölümlerinin navbar altında başlamasını sağlar */
+    margin-top: 100px; /* Navbar height + ekstra alan */
+    min-height: calc(100vh - 300px); /* Sayfanın en az görünür ekran yüksekliği kadar olmasını sağlar (footer yüksekliği çıkarılmış) */
+    padding: 0 20px;
 }
 
 /* Import Components */
@@ -537,4 +577,317 @@ body {
 .products-section {
     margin-top: 100px;
     padding: 20px 0 60px;
+}
+
+/* Search results specific styling */
+.search-results-section {
+    margin-top: 100px;
+    padding: 20px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Anasayfa Arama Formu */
+.search-container {
+    max-width: 600px;
+    margin: 30px auto;
+    position: relative;
+}
+
+.main-search-form {
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    position: relative;
+    z-index: 10;
+}
+
+.main-search-form:focus-within {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    border-color: var(--accent-color);
+}
+
+.main-search-form input {
+    flex: 1;
+    padding: 15px 25px;
+    border: none;
+    outline: none;
+    font-size: 1.1rem;
+    background: transparent;
+}
+
+.main-search-form button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.main-search-form button:hover {
+    background-color: var(--accent-color);
+}
+
+/* Arama önerileri için stiller */
+.search-suggestions {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: white;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    max-height: 350px;
+    overflow-y: auto;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.search-suggestions.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover {
+    background-color: #f9f9f9;
+}
+
+.suggestion-img {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: #f5f5f5;
+}
+
+.suggestion-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.suggestion-img i {
+    font-size: 18px;
+    color: #666;
+}
+
+.suggestion-content {
+    flex: 1;
+}
+
+.suggestion-title {
+    font-weight: 500;
+    margin-bottom: 3px;
+    color: #333;
+    font-size: 14px;
+}
+
+.suggestion-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #777;
+}
+
+.suggestion-category {
+    color: #666;
+}
+
+.suggestion-price {
+    font-weight: 500;
+    color: #e91e63;
+}
+
+.search-all-results {
+    padding: 12px 15px;
+    background-color: #f5f5f5;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.search-all-results:hover {
+    background-color: #e0e0e0;
+}
+
+.search-all-results i {
+    margin-left: 5px;
+}
+
+/* Ana sayfa arama kutusu için stil iyileştirmeleri */
+.hero-search-form {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.hero-search-form input[type="text"] {
+    width: 100%;
+    padding: 15px 45px 15px 15px;
+    border-radius: 30px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.hero-search-form input[type="text"]:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 2px 15px rgba(74, 144, 226, 0.15);
+}
+
+.hero-search-form button {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #4a90e2;
+    font-size: 18px;
+    cursor: pointer;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
+}
+
+.hero-search-form button:hover {
+    color: #2c6db2;
+}
+
+/* Arama sonuçları için stiller */
+.search-results-section {
+    margin: 2rem 0;
+    padding: 1rem;
+}
+
+.search-results-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.search-results-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.loading i {
+    margin-right: 10px;
+    color: #4a90e2;
+}
+
+.no-results {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #666;
+}
+
+.no-results i {
+    font-size: 3rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.no-results p {
+    margin-bottom: 0.5rem;
+}
+
+.search-tip {
+    font-size: 0.9rem;
+    color: #888;
+    font-style: italic;
+}
+
+.error {
+    text-align: center;
+    padding: 2rem;
+    color: #d32f2f;
+}
+
+.error i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .results-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .search-suggestions {
+        max-height: 300px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .results-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-suggestions {
+        max-height: 250px;
+    }
+    
+    .suggestion-img {
+        width: 30px;
+        height: 30px;
+    }
 }

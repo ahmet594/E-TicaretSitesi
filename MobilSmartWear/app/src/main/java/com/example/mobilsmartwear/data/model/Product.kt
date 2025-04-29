@@ -9,12 +9,14 @@ data class Product(
     val name: String,
     val description: String,
     val price: Double,
-    val category: String,
-    val subcategory: String? = null,
-    val brand: String,
     @SerializedName("image")
     private val _imageUrl: String,
-    val stock: Int,
+    val category: String,
+    val sizes: List<String> = listOf("S", "M", "L", "XL"),
+    @SerializedName("stock")
+    val stockCount: Int = 100,
+    val subcategory: String? = null,
+    val brand: String,
     @SerializedName("featured")
     val featured: Boolean = false,
     @SerializedName("salesCount")
@@ -29,6 +31,6 @@ data class Product(
         get() = RetrofitClient.getImageUrl(_imageUrl)
 
     fun hasStock(): Boolean {
-        return stock > 0
+        return stockCount > 0
     }
 } 

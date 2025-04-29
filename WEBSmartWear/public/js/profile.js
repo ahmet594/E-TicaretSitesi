@@ -56,15 +56,51 @@ async function loadUserData() {
             emailInput.value = user.email;
         }
         
+        // Load address data
+        loadAddressData(user);
+        
         // Load other user-related data
         loadOrdersData();
         loadFavoritesData();
-        loadReviewsData();
-        loadCouponsData();
         
     } catch (error) {
         console.error('Error loading user data:', error);
         showMessage('account-message', error.message, 'error');
+    }
+}
+
+// Load address data
+function loadAddressData(user) {
+    const noAddressMessage = document.getElementById('no-address-message');
+    const addressContent = document.getElementById('address-content');
+    const addressValue = document.getElementById('address-value');
+    const addressFormContainer = document.getElementById('address-form-container');
+    const addressText = document.getElementById('address-text');
+    
+    if (user.address && user.address.trim() !== '') {
+        // Show address content
+        noAddressMessage.style.display = 'none';
+        addressContent.style.display = 'block';
+        addressValue.textContent = user.address;
+        
+        // Set form value in case user wants to edit
+        if (addressText) {
+            addressText.value = user.address;
+        }
+    } else {
+        // Show no address message and form
+        noAddressMessage.style.display = 'block';
+        addressContent.style.display = 'none';
+        addressFormContainer.style.display = 'block';
+    }
+    
+    // Add event listener for edit button
+    const editAddressBtn = document.getElementById('edit-address-btn');
+    if (editAddressBtn) {
+        editAddressBtn.addEventListener('click', () => {
+            addressContent.style.display = 'none';
+            addressFormContainer.style.display = 'block';
+        });
     }
 }
 
@@ -139,53 +175,6 @@ function removeFavorite(productId) {
     }
 }
 
-// Load reviews data
-function loadReviewsData() {
-    // This would typically fetch from an API
-    // For now we'll just show the empty state
-}
-
-// Load coupons data
-function loadCouponsData() {
-    // This would typically fetch from an API
-    // For now we'll just show the empty state and possibly some sample coupons
-    const couponsList = document.getElementById('coupons-list');
-    
-    // If we want to show sample coupons:
-    if (Math.random() > 0.5) { // 50% chance to show sample coupons
-        couponsList.innerHTML = '';
-        
-        // Sample coupon
-        const coupon = document.createElement('div');
-        coupon.className = 'coupon-item';
-        coupon.innerHTML = `
-            <div class="coupon-content">
-                <div class="coupon-header">
-                    <h4>Hoş Geldin İndirimi</h4>
-                    <span class="coupon-code">WELCOME20</span>
-                </div>
-                <p class="coupon-desc">İlk siparişinizde %20 indirim</p>
-                <div class="coupon-footer">
-                    <span class="coupon-expiry">Son Kullanım: 31.12.2023</span>
-                    <button class="copy-coupon" data-code="WELCOME20">Kopyala</button>
-                </div>
-            </div>
-        `;
-        couponsList.appendChild(coupon);
-        
-        // Add event listener to copy button
-        coupon.querySelector('.copy-coupon').addEventListener('click', function() {
-            const code = this.getAttribute('data-code');
-            navigator.clipboard.writeText(code).then(() => {
-                this.textContent = 'Kopyalandı!';
-                setTimeout(() => {
-                    this.textContent = 'Kopyala';
-                }, 2000);
-            });
-        });
-    }
-}
-
 // Setup tab navigation
 function setupTabs() {
     const navItems = document.querySelectorAll('.profile-nav-item');
@@ -205,7 +194,7 @@ function setupTabs() {
             
             // Add active class to clicked nav item and corresponding tab
             item.classList.add('active');
-            const tabId = `${item.dataset.tab}-tab`;
+            const tabId = `${item.getAttribute('data-tab')}-tab`;
             document.getElementById(tabId).classList.add('active');
         });
     });
@@ -226,37 +215,29 @@ function setupFormHandlers() {
     }
     
     // Address form
-    const addAddressBtn = document.getElementById('add-address-btn');
     const addressForm = document.getElementById('address-form');
     const cancelAddressBtn = document.getElementById('cancel-address-btn');
     
-    if (addAddressBtn) {
-        addAddressBtn.addEventListener('click', () => {
-            const formContainer = document.getElementById('address-form-container');
-            if (formContainer) {
-                formContainer.style.display = 'block';
-                addAddressBtn.style.display = 'none';
-            }
-        });
+    if (addressForm) {
+        addressForm.addEventListener('submit', handleAddressSubmit);
     }
     
     if (cancelAddressBtn) {
         cancelAddressBtn.addEventListener('click', () => {
+            const addressContent = document.getElementById('address-content');
             const formContainer = document.getElementById('address-form-container');
-            if (formContainer) {
-                formContainer.style.display = 'none';
-                addAddressBtn.style.display = 'block';
-                
-                // Reset form
-                if (addressForm) {
-                    addressForm.reset();
-                }
+            const noAddressMessage = document.getElementById('no-address-message');
+            
+            // Check if we have an address already
+            if (addressContent.style.display === 'none' && noAddressMessage.style.display === 'block') {
+                // No address, keep the form visible
+                return;
             }
+            
+            // Hide form and show content
+            formContainer.style.display = 'none';
+            addressContent.style.display = 'block';
         });
-    }
-    
-    if (addressForm) {
-        addressForm.addEventListener('submit', handleAddressSubmit);
     }
 }
 
@@ -301,7 +282,7 @@ async function handleAccountUpdate(e) {
         
         showMessage('account-message', 'Profil başarıyla güncellendi', 'success');
     } catch (error) {
-        console.error('Error updating profile:', error);
+        console.error('Error updating account:', error);
         showMessage('account-message', error.message, 'error');
     }
 }
@@ -318,19 +299,18 @@ async function handlePasswordUpdate(e) {
     const newPassword = newPasswordInput.value;
     const confirmPassword = confirmPasswordInput.value;
     
-    // Validate passwords
     if (!currentPassword || !newPassword || !confirmPassword) {
         showMessage('password-message', 'Lütfen tüm alanları doldurun', 'error');
         return;
     }
     
-    if (newPassword.length < 6) {
-        showMessage('password-message', 'Yeni şifre en az 6 karakter olmalıdır', 'error');
+    if (newPassword !== confirmPassword) {
+        showMessage('password-message', 'Yeni şifreler eşleşmiyor', 'error');
         return;
     }
     
-    if (newPassword !== confirmPassword) {
-        showMessage('password-message', 'Yeni şifreler eşleşmiyor', 'error');
+    if (newPassword.length < 6) {
+        showMessage('password-message', 'Şifre en az 6 karakter olmalıdır', 'error');
         return;
     }
     
@@ -342,12 +322,15 @@ async function handlePasswordUpdate(e) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ currentPassword, newPassword })
+            body: JSON.stringify({
+                currentPassword,
+                newPassword
+            })
         });
         
         if (!response.ok) {
             const data = await response.json();
-            throw new Error(data.message || 'Şifre değiştirilirken bir hata oluştu');
+            throw new Error(data.message || 'Şifre değiştirme başarısız oldu');
         }
         
         // Reset form
@@ -355,83 +338,86 @@ async function handlePasswordUpdate(e) {
         newPasswordInput.value = '';
         confirmPasswordInput.value = '';
         
-        showMessage('password-message', 'Şifre başarıyla değiştirildi', 'success');
+        showMessage('password-message', 'Şifreniz başarıyla değiştirildi', 'success');
     } catch (error) {
         console.error('Error changing password:', error);
         showMessage('password-message', error.message, 'error');
     }
 }
 
-// Handle address submission
+// Handle address submit
 async function handleAddressSubmit(e) {
     e.preventDefault();
     
-    const title = document.getElementById('address-title').value.trim();
-    const address = document.getElementById('address-text').value.trim();
-    const city = document.getElementById('address-city').value.trim();
-    const postal = document.getElementById('address-postal').value.trim();
-    const phone = document.getElementById('address-phone').value.trim();
+    const addressInput = document.getElementById('address-text');
+    const address = addressInput.value.trim();
     
-    if (!title || !address || !city || !postal || !phone) {
-        alert('Lütfen tüm alanları doldurun');
+    if (!address) {
+        showMessage('address-message', 'Lütfen adres alanını doldurun', 'error');
         return;
     }
     
-    // This would typically call an API endpoint to save the address
-    // For now, we'll just simulate success and display the address
-    
-    const addressList = document.getElementById('address-list');
-    const emptyState = addressList.querySelector('.empty-state');
-    
-    if (emptyState) {
-        addressList.innerHTML = '';
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/auth/update-profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ address })
+        });
+        
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.message || 'Adres güncellenirken bir hata oluştu');
+        }
+        
+        const data = await response.json();
+        
+        // Update the address display
+        const noAddressMessage = document.getElementById('no-address-message');
+        const addressContent = document.getElementById('address-content');
+        const addressValue = document.getElementById('address-value');
+        const addressFormContainer = document.getElementById('address-form-container');
+        
+        // Show the address and hide the form
+        noAddressMessage.style.display = 'none';
+        addressContent.style.display = 'block';
+        addressValue.textContent = address;
+        addressFormContainer.style.display = 'none';
+        
+        showMessage('address-message', 'Adres başarıyla güncellendi', 'success');
+    } catch (error) {
+        console.error('Error updating address:', error);
+        showMessage('address-message', error.message, 'error');
     }
-    
-    const addressItem = document.createElement('div');
-    addressItem.className = 'address-item';
-    addressItem.innerHTML = `
-        <h4>${title}</h4>
-        <p>${address}</p>
-        <p>${city}, ${postal}</p>
-        <p>${phone}</p>
-        <div class="address-actions">
-            <button class="edit-address" data-id="temp">Düzenle</button>
-            <button class="delete-address" data-id="temp">Sil</button>
-        </div>
-    `;
-    
-    addressList.appendChild(addressItem);
-    
-    // Reset and hide form
-    document.getElementById('address-form').reset();
-    document.getElementById('address-form-container').style.display = 'none';
-    document.getElementById('add-address-btn').style.display = 'block';
 }
 
-// Setup logout functionality
+// Setup logout
 function setupLogout() {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            // Clear auth data
+            // Clear auth data from localStorage
             localStorage.removeItem('token');
             localStorage.removeItem('userId');
             localStorage.removeItem('userName');
             
-            // Redirect to home page
+            // Redirect to homepage
             window.location.href = '/';
         });
     }
 }
 
-// Show message in form
+// Show message
 function showMessage(elementId, message, type) {
     const messageElement = document.getElementById(elementId);
     if (messageElement) {
         messageElement.textContent = message;
         messageElement.className = `form-message ${type}`;
         
-        // Clear message after 5 seconds
+        // Clear message after a timeout
         setTimeout(() => {
             messageElement.textContent = '';
             messageElement.className = 'form-message';

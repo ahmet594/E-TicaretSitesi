@@ -9,16 +9,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Style
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,39 +27,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.mobilsmartwear.data.remote.TokenManager
-import com.example.mobilsmartwear.ui.screens.home.HomeScreen
-import com.example.mobilsmartwear.ui.theme.MobilSmartWearTheme
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import com.example.mobilsmartwear.data.local.UserPreferences
+import com.example.mobilsmartwear.data.remote.TokenManager
+import com.example.mobilsmartwear.data.repository.AuthRepository
+import com.example.mobilsmartwear.di.AppModule
 import com.example.mobilsmartwear.ui.navigation.NavDestination
-import com.example.mobilsmartwear.ui.screens.cart.CartScreen
-import com.example.mobilsmartwear.ui.screens.product.ProductDetailScreen
-import androidx.navigation.NavHostController
-import com.example.mobilsmartwear.ui.screens.auth.ForgotPasswordScreen
-import com.example.mobilsmartwear.ui.screens.auth.LoginScreen
-import com.example.mobilsmartwear.ui.screens.auth.RegisterScreen
-import com.example.mobilsmartwear.ui.screens.favorites.FavoritesScreen
-import com.example.mobilsmartwear.ui.components.BottomNavigationBar
 import com.example.mobilsmartwear.ui.navigation.NavGraph
+import com.example.mobilsmartwear.ui.theme.MobilSmartWearTheme
+import com.example.mobilsmartwear.ui.theme.NavyBlue
+import androidx.compose.ui.graphics.Color
 
 class MainActivity : ComponentActivity() {
-    
     companion object {
         private const val TAG = "MainActivity"
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "Uygulama başlatılıyor...")
         
         try {
-            // TokenManager'ı başlat
             Log.d(TAG, "Initializing TokenManager")
             TokenManager.init(applicationContext)
+            
+            // RetrofitClient'ı başlat
+            Log.d(TAG, "Initializing RetrofitClient")
+            com.example.mobilsmartwear.data.remote.RetrofitClient.init(applicationContext)
+            
+            // Oturum doğrulama kontrolü
+            checkLoginStatus()
             
             enableEdgeToEdge()
             
@@ -79,8 +74,33 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing MainActivity", e)
         }
-        
-        Log.d(TAG, "Uygulama başlatıldı")
+    }
+    
+    /**
+     * Uygulama başladığında kullanıcının giriş durumunu kontrol eder
+     */
+    private fun checkLoginStatus() {
+        try {
+            val userPreferences = UserPreferences(applicationContext)
+            val token = userPreferences.getToken()
+            val user = userPreferences.getUser()
+            
+            Log.d(TAG, "Oturum durumu kontrolü: Token ${if (token.isNotEmpty()) "mevcut" else "yok"}, " +
+                       "Kullanıcı ${if (user != null) "mevcut (${user.name})" else "yok"}")
+            
+            // Eğer token varsa ama kullanıcı bilgisi yoksa veya tersi durum varsa
+            if ((token.isNotEmpty() && user == null) || (token.isEmpty() && user != null)) {
+                Log.w(TAG, "Tutarsız oturum durumu tespit edildi, oturum bilgileri temizleniyor")
+                userPreferences.clearUserData()
+            }
+            
+            val authRepository = AppModule.provideAuthRepository(applicationContext)
+            val isLoggedIn = authRepository.isUserLoggedIn()
+            Log.d(TAG, "AuthRepository.isUserLoggedIn(): $isLoggedIn")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Oturum durumu kontrolünde hata", e)
+        }
     }
 }
 
@@ -88,7 +108,9 @@ class MainActivity : ComponentActivity() {
 fun MainAppContent() {
     val navController = rememberNavController()
     
-    // Bottom bar öğelerini tanımla
+    // Mevcut rota için state tutma
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route ?: NavDestination.Home.route
+    
     val navigationItems = listOf(
         BottomNavigationItem(
             name = "Ana Sayfa",
@@ -101,9 +123,9 @@ fun MainAppContent() {
             icon = Icons.Outlined.Search
         ),
         BottomNavigationItem(
-            name = "Favoriler",
-            route = NavDestination.Favorites.route,
-            icon = Icons.Outlined.FavoriteBorder
+            name = "Kombin Yap",
+            route = NavDestination.Combination.route,
+            icon = Icons.Default.Style
         ),
         BottomNavigationItem(
             name = "Sepet",
@@ -117,28 +139,36 @@ fun MainAppContent() {
         )
     )
     
-    // Login ve Register ekranlarında bottom bar gösterilmez
-    val shouldShowBottomBar = true
-    
-    // Scaffold ile sayfa yapısını oluştur
     Scaffold(
         bottomBar = {
-            if (shouldShowBottomBar) {
-                BottomNavigationBar(
-                    items = navigationItems,
-                    currentRoute = NavDestination.Home.route,
-                    onItemClick = { route ->
-                        navController.navigate(route) {
-                            navController.graph.startDestinationRoute?.let { homeRoute ->
-                                popUpTo(homeRoute) {
-                                    saveState = true
+            NavigationBar(
+                containerColor = NavyBlue
+            ) {
+                navigationItems.forEach { item ->
+                    NavigationBarItem(
+                        icon = { Icon(item.icon, contentDescription = item.name) },
+                        label = { Text(item.name) },
+                        selected = currentRoute == item.route,
+                        onClick = { 
+                            navController.navigate(item.route) {
+                                navController.graph.startDestinationRoute?.let { homeRoute ->
+                                    popUpTo(homeRoute) {
+                                        saveState = true
+                                    }
                                 }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                )
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color.White,
+                            selectedTextColor = Color.White,
+                            unselectedIconColor = Color.White.copy(alpha = 0.6f),
+                            unselectedTextColor = Color.White.copy(alpha = 0.6f),
+                            indicatorColor = NavyBlue.copy(alpha = 0.3f)
+                        )
+                    )
+                }
             }
         }
     ) { paddingValues ->

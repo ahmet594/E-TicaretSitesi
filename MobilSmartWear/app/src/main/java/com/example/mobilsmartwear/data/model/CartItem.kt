@@ -1,6 +1,7 @@
 package com.example.mobilsmartwear.data.model
 
 data class CartItem(
-    val productId: String,
-    val quantity: Int
+    val product: Product,
+    val quantity: Int,
+    val selectedSize: String? = null
 ) 

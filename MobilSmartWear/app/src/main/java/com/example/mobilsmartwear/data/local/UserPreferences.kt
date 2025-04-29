@@ -31,7 +31,13 @@ class UserPreferences(context: Context) {
      * Kaydedilmiş token'ı getirir
      */
     fun getToken(): String {
-        return sharedPreferences.getString(KEY_TOKEN, "") ?: ""
+        val token = sharedPreferences.getString(KEY_TOKEN, "") ?: ""
+        if (token.isEmpty()) {
+            android.util.Log.w("UserPreferences", "Kaydedilmiş token bulunamadı, kullanıcı giriş yapmamış olabilir.")
+        } else {
+            android.util.Log.d("UserPreferences", "Token bulundu (${token.take(10)}...)")
+        }
+        return token
     }
     
     /**
@@ -40,6 +46,7 @@ class UserPreferences(context: Context) {
     fun saveUser(user: User) {
         val userJson = Gson().toJson(user)
         sharedPreferences.edit().putString(KEY_USER, userJson).apply()
+        android.util.Log.d("UserPreferences", "Kullanıcı bilgileri kaydedildi: ID=${user.id}, Name=${user.name}")
     }
     
     /**
@@ -47,13 +54,17 @@ class UserPreferences(context: Context) {
      */
     fun getUser(): User? {
         val userJson = sharedPreferences.getString(KEY_USER, null)
-        return if (userJson != null) {
-            try {
-                Gson().fromJson(userJson, User::class.java)
-            } catch (e: Exception) {
-                null
-            }
-        } else {
+        if (userJson == null) {
+            android.util.Log.w("UserPreferences", "Kaydedilmiş kullanıcı bilgisi bulunamadı")
+            return null
+        }
+        
+        return try {
+            val user = Gson().fromJson(userJson, User::class.java)
+            android.util.Log.d("UserPreferences", "Kullanıcı bilgileri alındı: ID=${user.id}, Name=${user.name}")
+            user
+        } catch (e: Exception) {
+            android.util.Log.e("UserPreferences", "Kullanıcı bilgileri JSON formatından çözülemedi", e)
             null
         }
     }

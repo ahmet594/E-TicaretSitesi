@@ -18,7 +18,7 @@ const productSchema = new mongoose.Schema({
     category: {
         type: String,
         required: true,
-        enum: ['Kadın', 'Erkek']
+        enum: ['Giyim', 'Ayakkabı', 'Aksesuar']
     },
     subcategory: {
         type: String,

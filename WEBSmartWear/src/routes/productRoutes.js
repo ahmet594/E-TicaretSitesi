@@ -30,6 +30,9 @@ router.get('/search', asyncHandler(productController.searchProducts));
 // Get products by category
 router.get('/category/:category', asyncHandler(productController.getProductsByCategory));
 
+// Get products by subcategory
+router.get('/category/:category/subcategory/:subcategory', asyncHandler(productController.getProductsBySubcategory));
+
 // Get single product
 router.get('/:id', asyncHandler(productController.getProductById));
 

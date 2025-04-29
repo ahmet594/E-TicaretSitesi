@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    
+    <!-- Dış çember - Gradient renk geçişli -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M12,12m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0"
+        android:strokeColor="#FF6D00"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+    
+    <!-- İç çember -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M12,12m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0"
+        android:strokeColor="#651FFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round" />
+    
+    <!-- Kullanıcı sembolü -->
+    <path
+        android:fillColor="#651FFF"
+        android:pathData="M12,8m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+    
+    <!-- Alt kısım -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M16,18c0,-2.21 -1.79,-4 -4,-4s-4,1.79 -4,4"
+        android:strokeColor="#651FFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round" />
+</vector> 

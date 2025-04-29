@@ -1,16 +1,8 @@
 package com.example.mobilsmartwear.ui.screens.auth
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,50 +11,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mobilsmartwear.R
-import kotlinx.coroutines.launch
+import com.example.mobilsmartwear.data.local.UserManager
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
-    authViewModel: AuthViewModel = viewModel(),
-    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onRegisterSuccess: () -> Unit = {},
     onLoginClick: () -> Unit = {}
 ) {
@@ -72,27 +40,11 @@ fun RegisterScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    
+    val context = LocalContext.current
+    val userManager = remember { UserManager(context) }
     val scrollState = rememberScrollState()
-    val coroutineScope = rememberCoroutineScope()
-    
-    val authState by authViewModel.authState.collectAsState()
-    
-    // Kayıt başarılıysa navigasyon işlemi
-    LaunchedEffect(authState) {
-        when (authState) {
-            is AuthUiState.Success -> {
-                onRegisterSuccess()
-            }
-            is AuthUiState.Error -> {
-                val errorMessage = (authState as AuthUiState.Error).message
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar(errorMessage)
-                }
-                authViewModel.clearError()
-            }
-            else -> { /* İşlem yok */ }
-        }
-    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -115,11 +67,9 @@ fun RegisterScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = "App Logo",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
+                    painter = painterResource(id = R.drawable.ic_register_person),
+                    contentDescription = "Kayıt Ol İkonu",
+                    modifier = Modifier.size(150.dp)
                 )
             }
 
@@ -148,7 +98,7 @@ fun RegisterScreen(
                     keyboardType = KeyboardType.Text
                 ),
                 modifier = Modifier.fillMaxWidth(),
-                enabled = authState !is AuthUiState.Loading
+                enabled = !isLoading
             )
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -168,7 +118,7 @@ fun RegisterScreen(
                     keyboardType = KeyboardType.Email
                 ),
                 modifier = Modifier.fillMaxWidth(),
-                enabled = authState !is AuthUiState.Loading
+                enabled = !isLoading
             )
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -185,18 +135,10 @@ fun RegisterScreen(
                     )
                 },
                 trailingIcon = {
-                    IconButton(
-                        onClick = { passwordVisible = !passwordVisible },
-                        enabled = authState !is AuthUiState.Loading
-                    ) {
-                        val visibilityIcon = if (passwordVisible) {
-                            ImageVector.vectorResource(id = R.drawable.ic_visibility_off)
-                        } else {
-                            ImageVector.vectorResource(id = R.drawable.ic_visibility)
-                        }
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
-                            imageVector = visibilityIcon,
-                            contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                            imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = if (passwordVisible) "Şifreyi Gizle" else "Şifreyi Göster"
                         )
                     }
                 },
@@ -205,7 +147,7 @@ fun RegisterScreen(
                     keyboardType = KeyboardType.Password
                 ),
                 modifier = Modifier.fillMaxWidth(),
-                enabled = authState !is AuthUiState.Loading
+                enabled = !isLoading
             )
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -222,18 +164,10 @@ fun RegisterScreen(
                     )
                 },
                 trailingIcon = {
-                    IconButton(
-                        onClick = { confirmPasswordVisible = !confirmPasswordVisible },
-                        enabled = authState !is AuthUiState.Loading
-                    ) {
-                        val visibilityIcon = if (confirmPasswordVisible) {
-                            ImageVector.vectorResource(id = R.drawable.ic_visibility_off)
-                        } else {
-                            ImageVector.vectorResource(id = R.drawable.ic_visibility)
-                        }
+                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                         Icon(
-                            imageVector = visibilityIcon,
-                            contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password"
+                            imageVector = if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = if (confirmPasswordVisible) "Şifreyi Gizle" else "Şifreyi Göster"
                         )
                     }
                 },
@@ -242,25 +176,35 @@ fun RegisterScreen(
                     keyboardType = KeyboardType.Password
                 ),
                 modifier = Modifier.fillMaxWidth(),
-                enabled = authState !is AuthUiState.Loading
+                enabled = !isLoading
             )
             
             Spacer(modifier = Modifier.height(24.dp))
 
             // Kayıt ol butonu
             Button(
-                onClick = { 
-                    if (validateRegistration(name, email, password, confirmPassword, coroutineScope, snackbarHostState)) {
-                        authViewModel.register(name, email, password)
+                onClick = {
+                    if (validateInputs(name, email, password, confirmPassword)) {
+                        isLoading = true
+                        if (userManager.checkUserExists(email)) {
+                            Toast.makeText(context, "Bu e-posta adresi zaten kayıtlı!", Toast.LENGTH_SHORT).show()
+                            isLoading = false
+                        } else {
+                            val user = UserManager.User(name, email, password)
+                            userManager.saveUser(user)
+                            userManager.setCurrentUser(user)
+                            Toast.makeText(context, "Kayıt başarılı!", Toast.LENGTH_SHORT).show()
+                            onRegisterSuccess()
+                        }
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                enabled = authState !is AuthUiState.Loading
+                enabled = !isLoading
             ) {
-                if (authState is AuthUiState.Loading) {
+                if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
                         color = MaterialTheme.colorScheme.onPrimary,
@@ -289,7 +233,7 @@ fun RegisterScreen(
                 )
                 TextButton(
                     onClick = onLoginClick,
-                    enabled = authState !is AuthUiState.Loading
+                    enabled = !isLoading
                 ) {
                     Text(
                         text = "Giriş Yap",
@@ -299,54 +243,26 @@ fun RegisterScreen(
                     )
                 }
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
-// Kayıt form validasyonu
-private fun validateRegistration(
-    name: String, 
-    email: String, 
-    password: String, 
-    confirmPassword: String,
-    coroutineScope: kotlinx.coroutines.CoroutineScope,
-    snackbarHostState: SnackbarHostState
-): Boolean {
+private fun validateInputs(name: String, email: String, password: String, confirmPassword: String): Boolean {
     if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-        coroutineScope.launch {
-            snackbarHostState.showSnackbar("Lütfen tüm alanları doldurunuz")
-        }
         return false
     }
     
     if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-        coroutineScope.launch {
-            snackbarHostState.showSnackbar("Lütfen geçerli bir email adresi giriniz")
-        }
         return false
     }
     
     if (password.length < 6) {
-        coroutineScope.launch {
-            snackbarHostState.showSnackbar("Şifreniz en az 6 karakter olmalıdır")
-        }
         return false
     }
     
     if (password != confirmPassword) {
-        coroutineScope.launch {
-            snackbarHostState.showSnackbar("Şifreler eşleşmiyor")
-        }
         return false
     }
     
     return true
-}
-
-@Preview(showBackground = true)
-@Composable
-fun RegisterScreenPreview() {
-    RegisterScreen()
 } 

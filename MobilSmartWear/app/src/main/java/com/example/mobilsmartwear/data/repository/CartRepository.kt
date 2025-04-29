@@ -1,105 +1,80 @@
 package com.example.mobilsmartwear.data.repository
 
 import android.util.Log
-import com.example.mobilsmartwear.data.model.CartItem
 import com.example.mobilsmartwear.data.model.Product
+import com.example.mobilsmartwear.data.model.CartItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 
 class CartRepository(private val productRepository: ProductRepository) {
+    private val TAG = "CartRepository"
     
-    companion object {
-        private const val TAG = "CartRepository"
-    }
+    private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
+    private val cartItems = _cartItems.asStateFlow()
     
-    // Sepet öğelerini bellekte tutuyoruz
-    private val cartItemsFlow = MutableStateFlow<List<CartItem>>(emptyList())
+    fun getCartItems(): Flow<List<CartItem>> = cartItems
     
-    // Sepet işlemleri
-    fun getAllCartItems(): Flow<List<CartItem>> = cartItemsFlow
-    
-    fun getCartWithProducts(): Flow<List<Pair<CartItem, Product?>>> = cartItemsFlow.map { cartItems ->
-        cartItems.map { cartItem ->
-            // Her sepet öğesi için ürün detayını al
-            val product = getProductById(cartItem.productId)
-            Pair(cartItem, product)
+    suspend fun addToCart(product: Product, quantity: Int = 1, selectedSize: String? = null) {
+        val existingItem = _cartItems.value.find { 
+            it.product.id == product.id && it.selectedSize == selectedSize 
         }
-    }
-    
-    suspend fun addToCart(cartItem: CartItem): Boolean {
-        try {
-            // Sepette bu ürün varsa miktarını güncelle, yoksa ekle
-            val currentItems = cartItemsFlow.value
-            val existingItemIndex = currentItems.indexOfFirst { it.productId == cartItem.productId }
-            
-            val updatedItems = if (existingItemIndex >= 0) {
-                val existingItem = currentItems[existingItemIndex]
-                val updatedItem = existingItem.copy(quantity = existingItem.quantity + cartItem.quantity)
-                currentItems.toMutableList().apply {
-                    set(existingItemIndex, updatedItem)
-                }
-            } else {
-                currentItems + cartItem
+        if (existingItem != null) {
+            val index = _cartItems.value.indexOf(existingItem)
+            val updatedItems = _cartItems.value.toMutableList().apply {
+                set(index, existingItem.copy(quantity = existingItem.quantity + quantity))
             }
-            
-            cartItemsFlow.value = updatedItems
-            Log.d(TAG, "Ürün sepete eklendi: ${cartItem.productId}, miktar: ${cartItem.quantity}")
-            return true
-        } catch (e: Exception) {
-            Log.e(TAG, "Ürün sepete eklenirken hata oluştu", e)
-            return false
+            _cartItems.value = updatedItems
+        } else {
+            _cartItems.value = _cartItems.value + CartItem(product, quantity, selectedSize)
         }
+        Log.d(TAG, "Ürün sepete eklendi: ${product.name}, Miktar: $quantity, Beden: $selectedSize")
     }
     
-    suspend fun updateCartItem(cartItem: CartItem): Boolean {
-        try {
-            val currentItems = cartItemsFlow.value
-            val existingItemIndex = currentItems.indexOfFirst { it.productId == cartItem.productId }
-            
-            if (existingItemIndex >= 0) {
-                val updatedItems = currentItems.toMutableList().apply {
-                    set(existingItemIndex, cartItem)
-                }
-                cartItemsFlow.value = updatedItems
-                Log.d(TAG, "Sepet öğesi güncellendi: ${cartItem.productId}, miktar: ${cartItem.quantity}")
-                return true
+    suspend fun increaseQuantity(productId: String) {
+        val item = _cartItems.value.find { it.product.id == productId }
+        if (item != null) {
+            val index = _cartItems.value.indexOf(item)
+            val updatedItems = _cartItems.value.toMutableList().apply {
+                set(index, item.copy(quantity = item.quantity + 1))
             }
-            
-            return false
-        } catch (e: Exception) {
-            Log.e(TAG, "Sepet öğesi güncellenirken hata oluştu", e)
-            return false
+            _cartItems.value = updatedItems
+            Log.d(TAG, "Ürün miktarı artırıldı: ${item.product.name}")
         }
     }
     
-    suspend fun removeFromCart(cartItem: CartItem): Boolean {
-        try {
-            val currentItems = cartItemsFlow.value
-            val updatedItems = currentItems.filter { it.productId != cartItem.productId }
-            
-            cartItemsFlow.value = updatedItems
-            Log.d(TAG, "Ürün sepetten çıkarıldı: ${cartItem.productId}")
-            return true
-        } catch (e: Exception) {
-            Log.e(TAG, "Ürün sepetten çıkarılırken hata oluştu", e)
-            return false
+    suspend fun decreaseQuantity(productId: String) {
+        val item = _cartItems.value.find { it.product.id == productId }
+        if (item != null && item.quantity > 1) {
+            val index = _cartItems.value.indexOf(item)
+            val updatedItems = _cartItems.value.toMutableList().apply {
+                set(index, item.copy(quantity = item.quantity - 1))
+            }
+            _cartItems.value = updatedItems
+            Log.d(TAG, "Ürün miktarı azaltıldı: ${item.product.name}")
         }
     }
     
-    suspend fun clearCart(): Boolean {
-        try {
-            cartItemsFlow.value = emptyList()
-            Log.d(TAG, "Sepet temizlendi")
-            return true
-        } catch (e: Exception) {
-            Log.e(TAG, "Sepet temizlenirken hata oluştu", e)
-            return false
+    suspend fun removeFromCart(productId: String) {
+        val item = _cartItems.value.find { it.product.id == productId }
+        if (item != null) {
+            _cartItems.value = _cartItems.value.filter { it.product.id != productId }
+            Log.d(TAG, "Ürün sepetten kaldırıldı: ${item.product.name}")
         }
     }
     
-    private suspend fun getProductById(productId: String): Product? {
-        return productRepository.getProductById(productId)
+    suspend fun placeOrder() {
+        // TODO: Sipariş verme işlemleri burada yapılacak
+        _cartItems.value = emptyList()
+        Log.d(TAG, "Sipariş verildi ve sepet temizlendi")
+    }
+    
+    fun getCartItemCount(): Int {
+        return _cartItems.value.size
+    }
+    
+    fun getTotalPrice(): Double {
+        return _cartItems.value.sumOf { it.product.price * it.quantity }
     }
 } 

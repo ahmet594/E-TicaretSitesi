@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,36 +30,27 @@ fun HomeAppBar(
 ) {
     TopAppBar(
         title = {
-            Text(
-                text = title,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onMenuClick) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Menü"
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize =30.sp
+                    ),
+                    modifier = Modifier.padding(vertical = 4.dp)
                 )
             }
-        },
-        actions = {
-            // Arama ikonu
-            IconButton(onClick = onSearchClick) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Ara"
-                )
-            }
-            
-            // İsteğe bağlı ek aksiyonlar
-            actions()
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        )
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 0.dp),
+        windowInsets = androidx.compose.foundation.layout.WindowInsets(0.dp)
     )
 } 

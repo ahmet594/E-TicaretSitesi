@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aksesuarlar | SmartWear</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components/navbar.css">
+    <link rel="stylesheet" href="../css/components/product-card.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        /* Navbar altında boşluk bırakmak için */
+        main.container {
+            margin-top: 100px;
+            padding-top: 30px;
+            max-width: 1400px;
+        }
+        
+        /* Yeni Filtre Stilleri */
+        .categories-container {
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .category-sidebar {
+            width: 240px;
+            flex-shrink: 0;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            padding: 15px;
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .category-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        
+        .category-content {
+            flex: 1;
+        }
+        
+        .current-category-title {
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 8px;
+            display: inline-block;
+        }
+        
+        .category-group {
+            margin-bottom: 18px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            width: 100%;
+        }
+        
+        .category-group:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        
+        .category-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .category-title .icon {
+            margin-left: auto;
+            transition: transform 0.3s;
+            font-size: 0.8rem;
+        }
+        
+        .category-title.collapsed .icon {
+            transform: rotate(-180deg);
+        }
+        
+        .filter-section {
+            margin-bottom: 12px;
+        }
+        
+        .subcategory-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .subcategory-item {
+            margin-bottom: 8px;
+        }
+        
+        .subcategory-link {
+            display: flex;
+            align-items: center;
+            color: #555;
+            font-size: 0.85rem;
+            text-decoration: none;
+            padding: 4px 0;
+            transition: all 0.2s;
+        }
+        
+        .subcategory-link:hover {
+            color: var(--accent-color);
+            transform: translateX(3px);
+        }
+        
+        .subcategory-count {
+            margin-left: auto;
+            background-color: #f1f1f1;
+            color: #777;
+            font-size: 0.75rem;
+            padding: 1px 6px;
+            border-radius: 20px;
+        }
+        
+        .price-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        
+        .price-input {
+            width: 100%;
+            height: 32px;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        
+        .filter-option {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .filter-option input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        
+        .filter-option label {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 0;
+        }
+        
+        .filter-option input:checked + label {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .filter-option input:hover + label {
+            background-color: #e9e9e9;
+        }
+        
+        .filter-option input:checked:hover + label {
+            background-color: var(--accent-color);
+        }
+        
+        .color-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .color-option {
+            position: relative;
+        }
+        
+        .color-option input {
+            position: absolute;
+            opacity: 0;
+        }
+        
+        .color-option label {
+            display: block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            border: 2px solid transparent;
+        }
+        
+        .color-option input:checked + label {
+            border-color: var(--accent-color);
+            transform: scale(1.1);
+        }
+        
+        .color-option input:checked + label:after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-shadow: 0 0 2px rgba(0,0,0,0.8);
+        }
+        
+        .color-black {
+            background-color: #000;
+        }
+        
+        .color-white {
+            background-color: #fff;
+            border: 1px solid #ddd !important;
+        }
+        
+        .color-blue {
+            background-color: #1e3a8a;
+        }
+        
+        .color-brown {
+            background-color: #92400e;
+        }
+        
+        .color-gray {
+            background-color: #6b7280;
+        }
+        
+        .color-gold {
+            background-color: #d4af37;
+        }
+        
+        .color-silver {
+            background-color: #c0c0c0;
+        }
+        
+        .filter-btn {
+            width: 100%;
+            padding: 8px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            margin-top: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .filter-btn:hover {
+            background-color: var(--accent-color);
+        }
+        
+        .filter-reset {
+            width: 100%;
+            padding: 8px;
+            background-color: #f8f8f8;
+            color: #555;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .filter-reset:hover {
+            background-color: #e7e7e7;
+        }
+        
+        /* Sorting area */
+        .sorting-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        
+        .results-count {
+            font-size: 0.9rem;
+            color: #555;
+        }
+        
+        .sort-options {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .sort-label {
+            font-size: 0.9rem;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .sort-select {
+            padding: 6px 25px 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+        }
+        
+        .sort-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .view-options {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .view-option {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: white;
+            font-size: 0.9rem;
+        }
+        
+        .view-option:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .view-option.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .filter-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #555;
+        }
+        
+        .filter-tag .remove {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #999;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            transition: all 0.2s;
+        }
+        
+        .filter-tag .remove:hover {
+            background-color: rgba(0,0,0,0.1);
+            color: #555;
+        }
+        
+        /* Product grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        
+        .loading {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        .loading i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 992px) {
+            .categories-container {
+                flex-direction: column;
+            }
+            
+            .category-sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+                margin-bottom: 30px;
+            }
+            
+            .sorting-container {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            
+            .results-count {
+                width: 100%;
+            }
+            
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .sort-options {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar-container"></div>
+    
+    <main class="container">
+        <section class="categories-container">
+            <!-- Sidebar with Filters -->
+            <aside class="category-sidebar">
+                <h3 class="current-category-title">Aksesuarlar</h3>
+                
+                <div class="category-filters">
+                    <!-- Alt Kategoriler -->
+                    <div class="category-group">
+                        <h4 class="category-title">
+                            Alt Kategoriler
+                            <i class="fas fa-chevron-down icon"></i>
+                        </h4>
+                        <ul class="subcategory-list">
+                            <li class="subcategory-item">
+                                <a href="#" class="subcategory-link" data-category="Tümü">
+                                    Tüm Aksesuarlar
+                                    <span class="subcategory-count"></span>
+                                </a>
+                            </li>
+                            <li class="subcategory-item">
+                                <a href="#" class="subcategory-link" data-category="Saat">
+                                    Saatler
+                                    <span class="subcategory-count"></span>
+                                </a>
+                            </li>
+                            <li class="subcategory-item">
+                                <a href="#" class="subcategory-link" data-category="Kemer">
+                                    Kemer
+                                    <span class="subcategory-count"></span>
+                                </a>
+                            </li>
+                            <li class="subcategory-item">
+                                <a href="#" class="subcategory-link" data-category="Kravat">
+                                    Kravat
+                                    <span class="subcategory-count"></span>
+                                </a>
+                            </li>
+                            <li class="subcategory-item">
+                                <a href="#" class="subcategory-link" data-category="Şapka">
+                                    Şapka
+                                    <span class="subcategory-count"></span>
+                                </a>
+                            </li>
+                            <li class="subcategory-item">
+                                <a href="#" class="subcategory-link" data-category="Atkı">
+                                    Atkı
+                                    <span class="subcategory-count"></span>
+                                </a>
+                            </li>
+                            <li class="subcategory-item">
+                                <a href="#" class="subcategory-link" data-category="Eldiven">
+                                    Eldiven
+                                    <span class="subcategory-count"></span>
+                                </a>
+                            </li>
+                            <li class="subcategory-item">
+                                <a href="#" class="subcategory-link" data-category="Cüzdan">
+                                    Cüzdan
+                                    <span class="subcategory-count"></span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Fiyat Aralığı -->
+                    <div class="category-group">
+                        <h4 class="category-title">
+                            Fiyat Aralığı
+                            <i class="fas fa-chevron-down icon"></i>
+                        </h4>
+                        <div class="price-range-filter">
+                            <div class="price-inputs">
+                                <input type="number" id="min-price" class="price-input" placeholder="Min ₺">
+                                <input type="number" id="max-price" class="price-input" placeholder="Max ₺">
+                            </div>
+                            <button id="apply-price-filter" class="filter-btn">Fiyatı Uygula</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Malzeme -->
+                    <div class="category-group">
+                        <h4 class="category-title">
+                            Malzeme
+                            <i class="fas fa-chevron-down icon"></i>
+                        </h4>
+                        <div class="filter-options">
+                            <div class="filter-option">
+                                <input type="checkbox" id="material-leather" class="material-filter" data-material="Deri">
+                                <label for="material-leather">Deri</label>
+                            </div>
+                            <div class="filter-option">
+                                <input type="checkbox" id="material-metal" class="material-filter" data-material="Metal">
+                                <label for="material-metal">Metal</label>
+                            </div>
+                            <div class="filter-option">
+                                <input type="checkbox" id="material-fabric" class="material-filter" data-material="Kumaş">
+                                <label for="material-fabric">Kumaş</label>
+                            </div>
+                            <div class="filter-option">
+                                <input type="checkbox" id="material-plastic" class="material-filter" data-material="Plastik">
+                                <label for="material-plastic">Plastik</label>
+                            </div>
+                            <div class="filter-option">
+                                <input type="checkbox" id="material-ceramic" class="material-filter" data-material="Seramik">
+                                <label for="material-ceramic">Seramik</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Renk -->
+                    <div class="category-group">
+                        <h4 class="category-title">
+                            Renk
+                            <i class="fas fa-chevron-down icon"></i>
+                        </h4>
+                        <div class="color-options">
+                            <div class="color-option">
+                                <input type="checkbox" id="color-black" class="color-filter" data-color="Siyah">
+                                <label for="color-black" class="color-black" title="Siyah"></label>
+                            </div>
+                            <div class="color-option">
+                                <input type="checkbox" id="color-white" class="color-filter" data-color="Beyaz">
+                                <label for="color-white" class="color-white" title="Beyaz"></label>
+                            </div>
+                            <div class="color-option">
+                                <input type="checkbox" id="color-blue" class="color-filter" data-color="Mavi">
+                                <label for="color-blue" class="color-blue" title="Mavi"></label>
+                            </div>
+                            <div class="color-option">
+                                <input type="checkbox" id="color-brown" class="color-filter" data-color="Kahverengi">
+                                <label for="color-brown" class="color-brown" title="Kahverengi"></label>
+                            </div>
+                            <div class="color-option">
+                                <input type="checkbox" id="color-gold" class="color-filter" data-color="Altın">
+                                <label for="color-gold" class="color-gold" title="Altın"></label>
+                            </div>
+                            <div class="color-option">
+                                <input type="checkbox" id="color-silver" class="color-filter" data-color="Gümüş">
+                                <label for="color-silver" class="color-silver" title="Gümüş"></label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Actions -->
+                    <button id="reset-filters" class="filter-reset">
+                        <i class="fas fa-times-circle mr-2"></i> Filtreleri Temizle
+                    </button>
+                </div>
+            </aside>
+            
+            <!-- Main Content with Products -->
+            <div class="category-content">
+                <!-- Sorting Options -->
+                <div class="sorting-container">
+                    <div class="results-count">
+                        <span>45 ürün bulundu</span>
+                    </div>
+                    
+                    <div class="sort-options">
+                        <label for="sort-option" class="sort-label">Sırala:</label>
+                        <select id="sort-option" class="sort-select">
+                            <option value="newest">En Yeniler</option>
+                            <option value="price-asc">Fiyat (Artan)</option>
+                            <option value="price-desc">Fiyat (Azalan)</option>
+                            <option value="popular">En Popüler</option>
+                        </select>
+                    </div>
+                    
+                    <div class="view-options">
+                        <button class="view-option active" title="Grid View">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="view-option" title="List View">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Active Filters -->
+                <div class="active-filters" id="active-filters">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                
+                <!-- Products Grid -->
+                <div id="products-container" class="product-grid">
+                    <!-- Products will be loaded here dynamically -->
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> Ürünler yükleniyor...
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <div id="footer-container"></div>
+    
+    <!-- Include scripts -->
+    <script src="../js/components/navbar.js"></script>
+    <script src="../js/products.js"></script>
+    <script src="../js/category-filters.js"></script>
+    <script>
+        // Load navbar and footer components
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('../components/navbar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('navbar-container').innerHTML = data;
+                    // Activate category link after navbar is loaded
+                    if (typeof activateCurrentCategoryLink === 'function') {
+                        setTimeout(activateCurrentCategoryLink, 100);
+                    }
+                });
+                
+            fetch('../components/footer.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('footer-container').innerHTML = data;
+                });
+                
+            // Toggle filter categories
+            document.querySelectorAll('.category-title').forEach(title => {
+                title.addEventListener('click', () => {
+                    title.classList.toggle('collapsed');
+                    const content = title.nextElementSibling;
+                    if (content) {
+                        content.style.display = content.style.display === 'none' ? 'block' : 'none';
+                    }
+                });
+            });
+            
+            // Toggle view options
+            document.querySelectorAll('.view-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.view-option').forEach(opt => opt.classList.remove('active'));
+                    option.classList.add('active');
+                    
+                    // Change grid layout based on selected view
+                    const productsGrid = document.getElementById('products-container');
+                    if (option.title === 'List View') {
+                        productsGrid.style.display = 'block';
+                    } else {
+                        productsGrid.style.display = 'grid';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

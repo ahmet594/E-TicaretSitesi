@@ -55,9 +55,17 @@ interface ApiService {
     @POST("api/auth/register")
     suspend fun register(@Body registerRequest: RegisterRequest): Response<AuthResponse>
     
-    // Kullanıcı profili bilgilerini getir
+    // Kullanıcı profili bilgilerini getir (Eski endpoint)
     @GET("api/users/profile")
     suspend fun getUserProfile(): Response<User>
+    
+    // Kullanıcı bilgileri ve adresini getir (Yeni endpoint)
+    @GET("api/auth/me")
+    suspend fun getCurrentUser(): Response<User>
+    
+    // Kullanıcı adresini güncelle
+    @PUT("api/auth/update-profile")
+    suspend fun updateUserAddress(@Body addressUpdate: Map<String, String>): Response<User>
     
     // Yeni ürün ekleme
     @POST("api/products")

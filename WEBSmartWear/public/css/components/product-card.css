@@ -98,15 +98,23 @@
 }
 
 .product-category {
-    display: inline-block;
-    background-color: var(--light-gray);
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin-bottom: 5px;
+    font-size: 0.8rem;
+    color: #555;
+    margin-top: 5px;
 }
 
-.product-color, .product-size {
-    margin-top: 4px;
+.product-subcategory {
+    font-size: 0.8rem;
+    color: #777;
+    margin-top: 2px;
+    font-style: italic;
+}
+
+.product-color,
+.product-size {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 2px;
 }
 
 .product-price-container {

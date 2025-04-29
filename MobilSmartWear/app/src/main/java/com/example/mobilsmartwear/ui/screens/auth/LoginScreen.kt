@@ -60,7 +60,6 @@ fun LoginScreen(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onLoginSuccess: () -> Unit = {},
     onRegisterClick: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {},
     onContinueWithoutLogin: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
@@ -106,11 +105,10 @@ fun LoginScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = "App Logo",
+                    painter = painterResource(id = R.drawable.ic_login_key),
+                    contentDescription = "Giriş İkonu",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
+                        .size(150.dp)
                 )
             }
 
@@ -179,26 +177,7 @@ fun LoginScreen(
                 enabled = authState !is AuthUiState.Loading
             )
             
-            // Şifremi unuttum bağlantısı
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                TextButton(
-                    onClick = onForgotPasswordClick,
-                    enabled = authState !is AuthUiState.Loading
-                ) {
-                    Text(
-                        text = "Şifremi Unuttum",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 14.sp
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Giriş yap butonu
             Button(
@@ -234,45 +213,7 @@ fun LoginScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // "veya" bölümü
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = Color.Gray.copy(alpha = 0.5f)
-                )
-                Text(
-                    text = "veya",
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                )
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = Color.Gray.copy(alpha = 0.5f)
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Giriş yapmadan devam et butonu
-            OutlinedButton(
-                onClick = onContinueWithoutLogin,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                enabled = authState !is AuthUiState.Loading
-            ) {
-                Text(
-                    text = "Giriş Yapmadan Devam Et",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-            
+            // "veya" bölümü ve giriş yapmadan devam et butonunun kaldırılması
             Spacer(modifier = Modifier.height(16.dp))
             
             // Kayıt ol bağlantısı

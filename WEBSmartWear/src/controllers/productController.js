@@ -1,6 +1,21 @@
 const Product = require('../models/Product');
 const mongoose = require('mongoose');
 
+// Geçerli alt kategori listesi
+const SubcategoryLookup = {
+    'Giyim': [
+        'Hırka', 'Kaban & Parka', 'Kazak', 'Şortlar', 'Pantolon', 
+        'Ceket', 'T-Shirt', 'Gömlek', 'Mont', 'Sweatshirt', 
+        'Takım Elbise', 'Eşofman', 'Yelek', 'Kot Pantolon', 'Kumaş Pantolon'
+    ],
+    'Ayakkabı': [
+        'Spor Ayakkabı', 'Sneaker', 'Bot', 'Klasik'
+    ],
+    'Aksesuar': [
+        'Kemer', 'Kravat', 'Şapka', 'Atkı', 'Eldiven', 'Saat', 'Cüzdan'
+    ]
+};
+
 // Tüm ürünleri getir
 exports.getAllProducts = async (req, res) => {
     try {
@@ -36,13 +51,45 @@ exports.getProductsByCategory = async (req, res) => {
         const category = req.params.category;
         
         // Geçerli kategorileri kontrol et
-        const validCategories = ['Kadın', 'Erkek'];
+        const validCategories = ['Giyim', 'Ayakkabı', 'Aksesuar'];
         
         if (!validCategories.includes(category)) {
             return res.status(400).json({ message: 'Geçersiz kategori' });
         }
         
         const products = await Product.find({ category });
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Alt kategoriye göre ürün getir
+exports.getProductsBySubcategory = async (req, res) => {
+    try {
+        const category = req.params.category;
+        const subcategory = req.params.subcategory;
+        
+        // Geçerli kategorileri kontrol et
+        const validCategories = ['Giyim', 'Ayakkabı', 'Aksesuar'];
+        
+        if (!validCategories.includes(category)) {
+            return res.status(400).json({ message: 'Geçersiz kategori' });
+        }
+        
+        // Geçerli alt kategori kontrolü
+        if (subcategory !== 'Tümü' && SubcategoryLookup[category]) {
+            if (!SubcategoryLookup[category].includes(subcategory)) {
+                return res.status(400).json({ message: 'Geçersiz alt kategori' });
+            }
+        }
+        
+        // Hem kategori hem de alt kategori ile eşleşen ürünleri bul
+        const products = await Product.find({ 
+            category: category,
+            subcategory: subcategory 
+        });
+        
         res.json(products);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -118,7 +165,7 @@ exports.deleteProduct = async (req, res) => {
 // Ürün ara
 exports.searchProducts = async (req, res) => {
     try {
-        const searchQuery = req.query.q;
+        const searchQuery = req.query.query || req.query.q;
         
         if (!searchQuery) {
             return res.status(400).json({ message: 'Arama sorgusu gerekli' });
@@ -129,7 +176,9 @@ exports.searchProducts = async (req, res) => {
             $or: [
                 { name: { $regex: searchQuery, $options: 'i' } },
                 { description: { $regex: searchQuery, $options: 'i' } },
-                { brand: { $regex: searchQuery, $options: 'i' } }
+                { brand: { $regex: searchQuery, $options: 'i' } },
+                { category: { $regex: searchQuery, $options: 'i' } },
+                { subcategory: { $regex: searchQuery, $options: 'i' } }
             ]
         });
         

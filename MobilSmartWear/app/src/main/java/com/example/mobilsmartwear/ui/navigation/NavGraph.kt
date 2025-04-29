@@ -1,9 +1,13 @@
 package com.example.mobilsmartwear.ui.navigation
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -11,12 +15,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.mobilsmartwear.ui.screens.auth.LoginScreen
 import com.example.mobilsmartwear.ui.screens.auth.RegisterScreen
-import com.example.mobilsmartwear.ui.screens.home.HomeScreen
-import com.example.mobilsmartwear.ui.screens.favorites.FavoritesScreen
 import com.example.mobilsmartwear.ui.screens.cart.CartScreen
+import com.example.mobilsmartwear.ui.screens.category.CategoryScreen
+import com.example.mobilsmartwear.ui.screens.favorites.FavoritesScreen
+import com.example.mobilsmartwear.ui.screens.home.HomeScreen
 import com.example.mobilsmartwear.ui.screens.product.ProductDetailScreen
+import com.example.mobilsmartwear.ui.screens.profile.AdresScreen
+import com.example.mobilsmartwear.ui.screens.profile.OrdersScreen
 import com.example.mobilsmartwear.ui.screens.profile.ProfileScreen
 import com.example.mobilsmartwear.ui.screens.search.SearchScreen
+import androidx.compose.material3.Text
+import com.example.mobilsmartwear.di.AppModule
 
 @Composable
 fun NavGraph(
@@ -25,48 +34,84 @@ fun NavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = NavDestination.Login.route,
+        startDestination = NavDestination.Home.route,
         modifier = Modifier.padding(paddingValues)
     ) {
-        // Kimlik doğrulama ekranları
-        composable(route = NavDestination.Login.route) {
-            LoginScreen(
-                onLoginSuccess = {
-                    navController.navigate(NavDestination.Home.route) {
-                        popUpTo(NavDestination.Login.route) { inclusive = true }
-                    }
-                },
-                onRegisterClick = {
-                    navController.navigate(NavDestination.Register.route)
-                },
-                onContinueWithoutLogin = {
-                    navController.navigate(NavDestination.Home.route) {
-                        popUpTo(NavDestination.Login.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-        
-        composable(route = NavDestination.Register.route) {
-            RegisterScreen(
-                onRegisterSuccess = {
-                    navController.navigate(NavDestination.Home.route) {
-                        popUpTo(NavDestination.Register.route) { inclusive = true }
-                    }
-                },
-                onLoginClick = {
-                    navController.popBackStack()
-                }
-            )
-        }
-        
         // Ana ekranlar
         composable(route = NavDestination.Home.route) {
+            val context = LocalContext.current
+            val productRepository = AppModule.provideProductRepository(context.applicationContext as android.app.Application)
             HomeScreen(
+                onProductClick = { productId ->
+                    navController.navigate("${NavDestination.ProductDetail.route}/$productId")
+                },
+                onCategoryClick = { category ->
+                    navController.navigate(NavDestination.Category.createRoute(category))
+                },
+                onSearchClick = {
+                    navController.navigate(NavDestination.Search.route)
+                },
+                onFavoriteClick = {
+                    navController.navigate(NavDestination.Favorites.route)
+                },
+                productRepository = productRepository
+            )
+        }
+        
+        // Kategori sayfası
+        composable(
+            route = NavDestination.Category.route,
+            arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val category = backStackEntry.arguments?.getString("categoryName") ?: ""
+            CategoryScreen(
+                category = category,
+                onBackClick = { navController.popBackStack() },
                 onProductClick = { productId ->
                     navController.navigate("${NavDestination.ProductDetail.route}/$productId")
                 }
             )
+        }
+        
+        composable(route = NavDestination.Search.route) {
+            SearchScreen(
+                onProductClick = { productId ->
+                    navController.navigate("${NavDestination.ProductDetail.route}/$productId")
+                }
+            )
+        }
+        
+        composable(route = NavDestination.Combination.route) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Kombin Yap Sayfası - Yapım Aşamasında")
+            }
+        }
+        
+        composable(route = NavDestination.Favorites.route) {
+            FavoritesScreen(
+                onBackClick = { navController.popBackStack() },
+                onProductClick = { productId ->
+                    navController.navigate(NavDestination.ProductDetail.createRoute(productId))
+                }
+            )
+        }
+        
+        composable(route = NavDestination.Cart.route) {
+            CartScreen(
+                onNavigateToLogin = {
+                    navController.navigate(NavDestination.Login.route)
+                },
+                onNavigateToOrders = {
+                    navController.navigate(NavDestination.Orders.route)
+                }
+            )
+        }
+        
+        composable(route = NavDestination.Profile.route) {
+            ProfileScreen(navController = navController)
         }
         
         composable(
@@ -83,30 +128,71 @@ fun NavGraph(
             )
         }
         
-        composable(route = NavDestination.Search.route) {
-            SearchScreen(
-                onProductClick = { productId ->
-                    navController.navigate("${NavDestination.ProductDetail.route}/$productId")
+        // Kimlik doğrulama ekranları
+        composable(route = NavDestination.Login.route) {
+            LoginScreen(
+                onLoginSuccess = {
+                    navController.navigate(NavDestination.Home.route) {
+                        popUpTo(NavDestination.Login.route) { inclusive = true }
+                    }
+                },
+                onRegisterClick = {
+                    navController.navigate(NavDestination.Register.route)
                 }
             )
         }
         
-        composable(route = NavDestination.Cart.route) {
-            CartScreen()
-        }
-        
-        composable(route = NavDestination.Favorites.route) {
-            FavoritesScreen(
-                onProductClick = { productId ->
-                    navController.navigate("${NavDestination.ProductDetail.route}/$productId")
+        composable(route = NavDestination.Register.route) {
+            RegisterScreen(
+                onRegisterSuccess = {
+                    navController.navigate(NavDestination.Home.route) {
+                        popUpTo(NavDestination.Register.route) { inclusive = true }
+                    }
+                },
+                onLoginClick = {
+                    navController.navigate(NavDestination.Login.route) {
+                        popUpTo(NavDestination.Register.route) { inclusive = true }
+                    }
                 }
             )
         }
         
-        composable(route = NavDestination.Profile.route) {
-            ProfileScreen(
-                navController = navController
+        // Profil alt sayfaları
+        composable(route = NavDestination.Orders.route) {
+            OrdersScreen(
+                onBackClick = { navController.popBackStack() }
             )
+        }
+        
+        composable(route = NavDestination.Coupons.route) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Kuponlarım Sayfası - Yapım Aşamasında")
+            }
+        }
+        
+        composable(route = NavDestination.Reviews.route) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Değerlendirmelerim Sayfası - Yapım Aşamasında")
+            }
+        }
+        
+        composable(route = NavDestination.Adres.route) {
+            AdresScreen(navController = navController)
+        }
+        
+        composable(route = NavDestination.ChangePassword.route) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Şifre Değiştirme Sayfası - Yapım Aşamasında")
+            }
         }
     }
 } 

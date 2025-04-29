@@ -4,22 +4,346 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ana Sayfa | SmartWear</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/components/navbar.css">
     <link rel="stylesheet" href="../css/components/product-card.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Ana sayfa için özel stiller */
+        .hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), url('https://mensflair.com/wp-content/uploads/2023/06/old-money-style-aesthetic.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 120px 0;
+            text-align: center;
+            margin-bottom: 60px;
+            margin-top: 80px; /* Navbar yüksekliğine göre ayarlandı */
+            position: relative;
+            z-index: 1; /* Navbar'ın altında görünmesi için */
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .hero-content h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+            padding: 10px 25px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .categories-section {
+            margin-bottom: 60px;
+            padding: 40px 0;
+            background-color: #f9f9f9;
+        }
+        
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .category-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            height: 300px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .category-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .category-card:hover img {
+            transform: scale(1.1);
+        }
+        
+        .category-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            color: white;
+            text-align: center;
+        }
+        
+        .category-content h3 {
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .category-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            padding: 5px 0;
+            border-bottom: 2px solid white;
+            transition: all 0.3s;
+        }
+        
+        .category-link:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+        
+        .featured-products {
+            margin-bottom: 60px;
+            padding: 40px 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2rem;
+            font-weight: 700;
+            position: relative;
+        }
+        
+        .section-title:after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background-color: var(--primary-color);
+            margin: 15px auto 0;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        
+        .view-all {
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .newsletter {
+            background-color: #f0f0f0;
+            padding: 60px 0;
+            text-align: center;
+        }
+        
+        .newsletter-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .newsletter-content h2 {
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+        
+        .newsletter-content p {
+            margin-bottom: 30px;
+            color: #555;
+        }
+        
+        .newsletter-form {
+            display: flex;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .newsletter-form input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            font-size: 1rem;
+        }
+        
+        .newsletter-form button {
+            padding: 12px 25px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .newsletter-form button:hover {
+            background-color: var(--accent-color);
+        }
+        
+        @media (max-width: 992px) {
+            .categories-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero {
+                padding: 80px 0;
+            }
+            
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+            
+            .newsletter-form {
+                flex-direction: column;
+            }
+            
+            .newsletter-form input {
+                border-radius: 4px;
+                margin-bottom: 10px;
+            }
+            
+            .newsletter-form button {
+                border-radius: 4px;
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Navbar will be loaded here -->
     <div id="navbar-container"></div>
 
     <!-- Hero Section -->
-    <section class="hero main-content-section">
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Moda Sizinle Başlar</h1>
+            <p>SmartWear ile tarzınızı yansıtan en yeni ve trend ürünleri keşfedin. Şıklık ve konfor bir arada.</p>
+            
+            <!-- Arama Formu -->
+            <div class="search-container">
+                <form class="main-search-form" id="main-search-form">
+                    <input type="text" id="main-search-input" placeholder="Ürün, kategori veya marka arayın..." autocomplete="off">
+                    <button type="submit" id="main-search-button">
+                        <i class="fas fa-search"></i> Ara
+                    </button>
+                </form>
+                <!-- Arama Önerileri -->
+                <div class="search-suggestions" id="search-suggestions"></div>
+            </div>
+            
+            <div class="hero-buttons">
+                <a href="/views/clothing.html" class="btn">Giyim Koleksiyonu</a>
+                <a href="/views/accessories.html" class="btn-outline">Aksesuarlar</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories-section">
         <div class="container">
-            <div class="hero-content">
-                <h1>Modern teknoloji, şık tasarım</h1>
-                <p>Teknoloji ve modayı buluşturan SmartWear koleksiyonuyla tarzınızı yükseltin.</p>
-                <a href="/views/women.html" class="btn">Hemen Alışverişe Başla</a>
+            <h2 class="section-title">Kategoriler</h2>
+            <div class="categories-grid">
+                <div class="category-card">
+                    <img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f" alt="Erkek Giyim">
+                    <div class="category-content">
+                        <h3>Giyim</h3>
+                        <a href="/views/clothing.html" class="category-link">Keşfet</a>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772" alt="Erkek Ayakkabı">
+                    <div class="category-content">
+                        <h3>Ayakkabı</h3>
+                        <a href="/views/shoes.html" class="category-link">Keşfet</a>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://images.unsplash.com/photo-1622434641406-a158123450f9" alt="Erkek Aksesuar">
+                    <div class="category-content">
+                        <h3>Aksesuar</h3>
+                        <a href="/views/accessories.html" class="category-link">Keşfet</a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -35,7 +359,7 @@
                 </div>
             </div>
             <div class="view-all">
-                <a href="/views/women.html" class="btn-outline">Tüm Ürünleri Gör</a>
+                <a href="/views/clothing.html" class="btn-outline">Tüm Ürünleri Gör</a>
             </div>
         </div>
     </section>
@@ -45,7 +369,7 @@
         <div class="container">
             <div class="newsletter-content">
                 <h2>Yeniliklerden Haberdar Olun</h2>
-                <p>Yeni ürünler ve özel fırsatlar için bültenimize abone olun.</p>
+                <p>Erkek modasındaki en son trendler, yeni koleksiyonlar ve özel indirimler için bültenimize abone olun.</p>
                 <form id="newsletter-form" class="newsletter-form">
                     <input type="email" placeholder="E-posta adresiniz" required>
                     <button type="submit" class="btn">Abone Ol</button>
@@ -56,6 +380,9 @@
 
     <!-- Notification Container -->
     <div id="notification-container"></div>
+
+    <!-- Footer will be loaded here -->
+    <div id="footer-container"></div>
 
     <!-- Load Components -->
     <script src="../js/components/navbar.js"></script>
@@ -69,6 +396,13 @@
                 if (typeof updateNavbarAuthUI === 'function') {
                     updateNavbarAuthUI();
                 }
+            });
+            
+        // Load footer
+        fetch('../components/footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-container').innerHTML = data;
             });
     </script>
     <script src="../js/cart.js"></script>

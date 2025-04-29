@@ -145,7 +145,7 @@ class ProductRepository {
                 category = "Erkek",
                 brand = "SmartWear",
                 _imageUrl = "https://fastly.picsum.photos/id/192/300/400.jpg",
-                stock = 25,
+                stockCount = 25,
                 featured = true
             ),
             Product(
@@ -156,7 +156,7 @@ class ProductRepository {
                 category = "Erkek",
                 brand = "SmartWear",
                 _imageUrl = "https://fastly.picsum.photos/id/173/300/400.jpg",
-                stock = 15,
+                stockCount = 15,
                 featured = false
             ),
             Product(
@@ -167,7 +167,7 @@ class ProductRepository {
                 category = "Kadın",
                 brand = "SmartWear",
                 _imageUrl = "https://fastly.picsum.photos/id/177/300/400.jpg",
-                stock = 10,
+                stockCount = 10,
                 featured = true
             ),
             Product(
@@ -178,7 +178,7 @@ class ProductRepository {
                 category = "Erkek",
                 brand = "SmartWear",
                 _imageUrl = "https://fastly.picsum.photos/id/175/300/400.jpg",
-                stock = 20,
+                stockCount = 20,
                 featured = false
             ),
             Product(
@@ -189,7 +189,7 @@ class ProductRepository {
                 category = "Erkek",
                 brand = "SmartWear",
                 _imageUrl = "https://fastly.picsum.photos/id/176/300/400.jpg",
-                stock = 5,
+                stockCount = 5,
                 featured = true
             )
         )
