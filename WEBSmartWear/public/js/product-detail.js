@@ -13,10 +13,19 @@ const productCategory = document.getElementById('product-category');
 const productStock = document.getElementById('product-stock');
 const addToCartBtn = document.getElementById('add-to-cart');
 const addToFavoritesBtn = document.getElementById('add-to-favorites');
+const sizeOptionsContainer = document.getElementById('size-options');
 
 // State
 let currentProduct = null;
 let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+let selectedSize = null;
+
+// Varsayılan beden setleri
+const defaultSizes = {
+    'Giyim': ['XS', 'S', 'M', 'L', 'XL'],
+    'Ayakkabı': ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'],
+    'Aksesuar': [] // Aksesuarlar için beden yok
+};
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -74,13 +83,53 @@ function displayProductDetails(product) {
     if (product.stock > 0) {
         productStock.textContent = `Stok: ${product.stock}`;
         productStock.className = 'product-stock in-stock';
-        addToCartBtn.disabled = false;
-        addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Sepete Ekle';
+        
+        // Kategori bazlı beden seçeneklerini göster
+        if (product.category === 'Giyim' || product.category === 'Ayakkabı') {
+            const sizes = defaultSizes[product.category];
+            sizeOptionsContainer.innerHTML = `
+                <h4>Beden Seçimi</h4>
+                <div class="size-buttons">
+                    ${sizes.map(size => `
+                        <button class="size-button" data-size="${size}">
+                            ${size}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+            
+            // Beden seçimi için event listener'ları ekle
+            const sizeButtons = sizeOptionsContainer.querySelectorAll('.size-button');
+            sizeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Önceki seçili bedeni kaldır
+                    sizeButtons.forEach(btn => btn.classList.remove('selected'));
+                    // Yeni bedeni seç
+                    button.classList.add('selected');
+                    selectedSize = button.dataset.size;
+                    
+                    // Sepete ekle butonunu güncelle
+                    addToCartBtn.disabled = false;
+                    addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Sepete Ekle';
+                });
+            });
+            
+            // Sepete ekle butonunu devre dışı bırak (beden seçilene kadar)
+            addToCartBtn.disabled = true;
+            addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Beden Seçiniz';
+            sizeOptionsContainer.style.display = 'block';
+        } else {
+            // Aksesuar kategorisi için beden seçimi gerekmez
+            sizeOptionsContainer.style.display = 'none';
+            addToCartBtn.disabled = false;
+            addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Sepete Ekle';
+        }
     } else {
         productStock.textContent = 'Stokta Yok';
         productStock.className = 'product-stock out-of-stock';
         addToCartBtn.disabled = true;
         addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Stokta Yok';
+        sizeOptionsContainer.style.display = 'none';
     }
     
     // Show product content
@@ -88,50 +137,49 @@ function displayProductDetails(product) {
     productContent.style.display = 'flex';
 }
 
-// Setup event listeners
-function setupEventListeners() {
-    // Add to cart button
-    addToCartBtn.addEventListener('click', () => {
-        if (currentProduct && currentProduct.stock > 0) {
-            addToCart(currentProduct._id);
-        }
-    });
-    
-    // Add to favorites button
-    addToFavoritesBtn.addEventListener('click', () => {
-        if (currentProduct) {
-            toggleFavorite(currentProduct._id);
-        }
-    });
-}
-
 // Add to cart
-function addToCart(productId) {
+function addToCart() {
     if (!currentProduct) return;
     
-    // Yeni sepet fonksiyonunu çağır (cart.js'teki fonksiyon)
-    if (typeof window.addToCart === 'function') {
-        window.addToCart(
-            currentProduct._id,
-            currentProduct.name,
-            currentProduct.price,
-            currentProduct.image,
-            1
-        );
-    } else {
-        // Fallback eski koda
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        cart.push(productId);
-        localStorage.setItem('cart', JSON.stringify(cart));
-        
-        // Update cart count
-        if (typeof updateCartCount === 'function') {
-            updateCartCount();
-        }
-        
-        // Show notification
-        showNotification('Ürün sepete eklendi!');
+    // Beden kontrolü
+    if ((currentProduct.category === 'Giyim' || currentProduct.category === 'Ayakkabı') && !selectedSize) {
+        showNotification('Lütfen bir beden seçiniz!', 'error');
+        return;
     }
+    
+    // Sepete ekle
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    // Ürün zaten sepette var mı kontrol et
+    const existingItemIndex = cart.findIndex(item => 
+        item.productId === currentProduct._id && item.size === selectedSize
+    );
+    
+    if (existingItemIndex !== -1) {
+        // Ürün zaten sepette, miktarını artır
+        cart[existingItemIndex].quantity += 1;
+    } else {
+        // Yeni ürün ekle
+        cart.push({
+            productId: currentProduct._id,
+            name: currentProduct.name,
+            price: currentProduct.price,
+            image: currentProduct.image,
+            quantity: 1,
+            size: selectedSize || null
+        });
+    }
+    
+    // Sepeti güncelle
+    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // Sepet sayısını güncelle
+    if (typeof updateCartCount === 'function') {
+        updateCartCount();
+    }
+    
+    // Bildirim göster
+    showNotification('Ürün sepete eklendi!', 'success');
 }
 
 // Toggle favorite
@@ -188,13 +236,26 @@ function showError(message) {
 }
 
 // Show notification
-function showNotification(message) {
+function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
-    notification.className = 'notification';
+    notification.className = `notification ${type}`;
     notification.textContent = message;
-    document.body.appendChild(notification);
-
+    
+    document.getElementById('notification-container').appendChild(notification);
+    
+    // 3 saniye sonra bildirimi kaldır
     setTimeout(() => {
         notification.remove();
     }, 3000);
+}
+
+// Setup event listeners
+function setupEventListeners() {
+    if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', addToCart);
+    }
+    
+    if (addToFavoritesBtn) {
+        addToFavoritesBtn.addEventListener('click', toggleFavorite);
+    }
 } 

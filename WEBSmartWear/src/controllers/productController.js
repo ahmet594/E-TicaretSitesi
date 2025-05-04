@@ -4,9 +4,9 @@ const mongoose = require('mongoose');
 // Geçerli alt kategori listesi
 const SubcategoryLookup = {
     'Giyim': [
-        'Hırka', 'Kaban & Parka', 'Kazak', 'Şortlar', 'Pantolon', 
-        'Ceket', 'T-Shirt', 'Gömlek', 'Mont', 'Sweatshirt', 
-        'Takım Elbise', 'Eşofman', 'Yelek', 'Kot Pantolon', 'Kumaş Pantolon'
+        't-shirt', 'gömlek', 'kazak', 'hırka', 'sweatshirt', 
+        'mont', 'kaban-parka', 'ceket', 'kot-pantolon', 
+        'kumaş-pantolon', 'şortlar', 'takım-elbise', 'eşofman', 'yelek'
     ],
     'Ayakkabı': [
         'Spor Ayakkabı', 'Sneaker', 'Bot', 'Klasik'
@@ -181,6 +181,32 @@ exports.searchProducts = async (req, res) => {
                 { subcategory: { $regex: searchQuery, $options: 'i' } }
             ]
         });
+        
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Anlık arama önerileri (live search)
+exports.liveSearchProducts = async (req, res) => {
+    try {
+        const searchQuery = req.query.query || req.query.q;
+        
+        if (!searchQuery || searchQuery.length < 2) {
+            return res.status(400).json({ message: 'Arama sorgusu en az 2 karakter olmalıdır' });
+        }
+        
+        // İsim, marka veya kategoriye göre sınırlı sayıda sonuç döndür
+        const products = await Product.find({
+            $or: [
+                { name: { $regex: searchQuery, $options: 'i' } },
+                { brand: { $regex: searchQuery, $options: 'i' } },
+                { category: { $regex: searchQuery, $options: 'i' } }
+            ]
+        })
+        .select('name image brand category price') // Sadece gerekli alanları seç
+        .limit(5); // Maksimum 5 sonuç göster
         
         res.json(products);
     } catch (error) {

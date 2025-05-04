@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components/navbar.css">
+    <link rel="stylesheet" href="../css/components/footer.css">
+    <link rel="stylesheet" href="../css/components/product-card.css">
     <style>
         /* Arama Sayfası Stilleri */
         .search-header {
@@ -16,65 +19,80 @@
             border-bottom: 1px solid #e9ecef;
         }
         
-        .search-form {
+        .search-results-section {
+            padding: 40px 0;
+            min-height: 60vh;
+        }
+        
+        .search-results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        #search-title {
+            margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        /* Arama Formu Stilleri */
+        .hero-search-form {
             position: relative;
-            margin-bottom: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto 40px;
         }
         
-        .search-input {
-            border-radius: 30px;
-            padding-left: 20px;
-            padding-right: 50px;
-            border: 2px solid #4a90e2;
-            height: 50px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-        
-        .search-input:focus {
-            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2);
-            border-color: #2a70c2;
-        }
-        
-        .search-button {
-            position: absolute;
-            right: 5px;
-            top: 5px;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            background-color: #4a90e2;
-            border: none;
-            color: white;
+        #page-search-form {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            background: white;
         }
         
-        .search-button:hover {
-            background-color: #2a70c2;
+        #page-search-input {
+            flex: 1;
+            border: none;
+            padding: 16px 20px;
+            font-size: 1rem;
+            outline: none;
+            background-color: white;
+        }
+        
+        #page-search-form button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 10px 10px 10px 10px;
+        }
+        
+        #page-search-form button:hover {
+            background-color: var(--accent-color);
         }
         
         /* Arama önerileri */
-        .search-suggestions-container {
-            position: relative;
-        }
-        
         .search-suggestions {
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
             background-color: white;
-            border-radius: 10px;
+            border-radius: 0 0 10px 10px;
             max-height: 0;
             overflow: hidden;
             opacity: 0;
             visibility: hidden;
             z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
             transition: all 0.3s ease;
+            margin-top: 5px;
         }
         
         .search-suggestions.active {
@@ -83,15 +101,19 @@
             visibility: visible;
             overflow-y: auto;
             padding: 10px 0;
-            margin-top: 5px;
         }
         
         .search-suggestion {
-            padding: 10px 20px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
             cursor: pointer;
             transition: background-color 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .search-suggestion:last-child {
+            border-bottom: none;
         }
         
         .search-suggestion:hover {
@@ -113,6 +135,10 @@
             overflow: hidden;
             flex-shrink: 0;
             margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
         }
         
         .suggestion-image img {
@@ -497,6 +523,184 @@
                 font-size: 1.1rem;
             }
         }
+        
+        .search-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .filter-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: white;
+            font-size: 1rem;
+            color: #333;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        .filter-group select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+        
+        .search-results-info {
+            margin-bottom: 20px;
+            padding: 0 20px;
+        }
+        
+        #results-count {
+            color: #666;
+            font-size: 0.95rem;
+        }
+        
+        /* Sonuç ızgarası */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        /* Ürün Kartları */
+        .product-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .product-image {
+            position: relative;
+            overflow: hidden;
+            height: 200px;
+        }
+        
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        
+        .product-card:hover .product-image img {
+            transform: scale(1.1);
+        }
+        
+        .product-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .product-card:hover .product-actions {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .btn-action {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .btn-action:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .product-details {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .product-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .product-category {
+            font-size: 0.9rem;
+            color: #777;
+            margin-bottom: 10px;
+        }
+        
+        .product-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-top: auto;
+        }
+        
+        /* Yükleniyor ve Hata Durumları */
+        .loading, .error, .no-results {
+            text-align: center;
+            padding: 50px 0;
+            color: #666;
+            grid-column: 1 / -1;
+        }
+        
+        .loading i, .error i, .no-results i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+        
+        .error i {
+            color: #ff6b6b;
+        }
+        
+        .search-tip {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -510,8 +714,8 @@
             
             <!-- Arama Formu -->
             <div class="hero-search-form">
-                <form id="page-search-form">
-                    <input type="text" id="page-search-input" placeholder="Ürün, kategori veya marka arayın..." autocomplete="off">
+                <form id="page-search-form" action="/views/search.html" method="GET">
+                    <input type="text" id="page-search-input" name="q" placeholder="Ürün, kategori veya marka arayın..." autocomplete="off">
                     <button type="submit">
                         <i class="fas fa-search"></i>
                     </button>
@@ -522,15 +726,6 @@
 
             <!-- Filtreleme Seçenekleri -->
             <div class="search-filters">
-                <div class="filter-group">
-                    <label for="category-filter">Kategori</label>
-                    <select id="category-filter" class="form-control">
-                        <option value="">Tümü</option>
-                        <option value="Giyim">Giyim</option>
-                        <option value="Ayakkabı">Ayakkabı</option>
-                        <option value="Aksesuar">Aksesuar</option>
-                    </select>
-                </div>
                 <div class="filter-group">
                     <label for="price-filter">Fiyat</label>
                     <select id="price-filter" class="form-control">
@@ -568,42 +763,8 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <h4>SmartWear</h4>
-                    <p>En yeni moda trendleri ve özel tasarım ürünleriyle tarzınızı yansıtın. Şıklık ve konfor bir arada.</p>
-                </div>
-                <div class="col-md-4">
-                    <h4>Hızlı Erişim</h4>
-                    <ul class="footer-links">
-                        <li><a href="/views/index.html">Ana Sayfa</a></li>
-                        <li><a href="/views/clothing.html">Giyim</a></li>
-                        <li><a href="/views/accessories.html">Aksesuarlar</a></li>
-                        <li><a href="/views/about.html">Hakkımızda</a></li>
-                        <li><a href="/views/contact.html">İletişim</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h4>İletişim</h4>
-                    <p><i class="fas fa-map-marker-alt"></i> İstanbul, Türkiye</p>
-                    <p><i class="fas fa-phone"></i> +90 (212) 123 4567</p>
-                    <p><i class="fas fa-envelope"></i> info@smartwear.com</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2023 SmartWear. Tüm hakları saklıdır.</p>
-            </div>
-        </div>
-    </footer>
+    <!-- Footer will be loaded here -->
+    <div id="footer-container"></div>
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -622,70 +783,110 @@
                         updateNavbarAuthUI();
                     }
                 });
+                
+            // Footer'ı yükle
+            fetch('../components/footer.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('footer-container').innerHTML = data;
+                });
 
-            // URL'den arama parametrelerini al
             const urlParams = new URLSearchParams(window.location.search);
             const query = urlParams.get('q');
             
-            // Başlığı güncelle
+            // Sayfa başlığını güncelle
             const searchTitle = document.getElementById('search-title');
-            if (query) {
-                searchTitle.textContent = `"${query}" için Arama Sonuçları`;
-                
-                // Arama girdisini doldur
-                const pageSearchInput = document.getElementById('page-search-input');
-                if (pageSearchInput) {
-                    pageSearchInput.value = query;
-                }
-                
-                // Arama sonuçlarını getir
-                fetchSearchResults(query);
+            if (query && searchTitle) {
+                searchTitle.textContent = `"${query}" için arama sonuçları`;
             }
             
-            // Sayfa içi arama formu
-            const pageSearchForm = document.getElementById('page-search-form');
-            if (pageSearchForm) {
-                pageSearchForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const pageSearchInput = document.getElementById('page-search-input');
-                    const query = pageSearchInput.value.trim();
-                    if (query) {
-                        // URL'i güncelle ve sayfayı yenile
-                        window.location.href = `/views/search.html?q=${encodeURIComponent(query)}`;
-                    }
-                });
+            // Arama kutusunu doldur
+            const searchInput = document.getElementById('page-search-input');
+            if (searchInput && query) {
+                searchInput.value = query;
             }
+            
+            // Arama sonuçlarını getir
+            if (query) {
+                fetchSearchResults(query);
+            } else {
+                document.getElementById('results-grid').innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <p>Lütfen bir arama sorgusu girin</p>
+                    </div>
+                `;
+            }
+            
+            // Arama formu olaylarını kur
+            setupSearchForm();
             
             // Filtreleme işlevselliği
-            const categoryFilter = document.getElementById('category-filter');
+            setupFilters(query);
+        });
+        
+        // Filtreleri ayarla
+        function setupFilters(query) {
             const priceFilter = document.getElementById('price-filter');
             const sortFilter = document.getElementById('sort-filter');
             
+            if (!priceFilter || !sortFilter) return;
+            
             // Filtreleme değiştiğinde sonuçları yeniden getir
-            [categoryFilter, priceFilter, sortFilter].forEach(filter => {
+            [priceFilter, sortFilter].forEach(filter => {
                 filter.addEventListener('change', function() {
                     if (query) {
                         fetchSearchResults(query);
                     }
                 });
             });
-            
-            // Canlı arama özelliği
-            setupLiveSearch();
-        });
+        }
         
-        // Canlı arama kurulumu
-        function setupLiveSearch() {
+        // Arama formunu ayarla
+        function setupSearchForm() {
+            const pageSearchForm = document.getElementById('page-search-form');
             const pageSearchInput = document.getElementById('page-search-input');
             const searchSuggestions = document.getElementById('search-suggestions');
             
-            if (pageSearchInput && searchSuggestions) {
+            if (pageSearchForm && pageSearchInput) {
+                // Form submit olduğunda
+                pageSearchForm.addEventListener('submit', function(e) {
+                    const query = pageSearchInput.value.trim();
+                    
+                    if (query.length < 2) {
+                        e.preventDefault();
+                        showNotification('Lütfen en az 2 karakter girin', 'info');
+                        return;
+                    }
+                    
+                    // Bulunduğumuz sayfadaysak, sayfa yenilenmesini önle
+                    if (window.location.pathname.includes('/views/search.html')) {
+                        e.preventDefault();
+                        searchSuggestions.classList.remove('active');
+                        
+                        // URL'i güncelle (sayfa yenilenmeden)
+                        const url = new URL(window.location);
+                        url.searchParams.set('q', query);
+                        window.history.pushState({}, '', url);
+                        
+                        // Başlığı güncelle
+                        const searchTitle = document.getElementById('search-title');
+                        if (searchTitle) {
+                            searchTitle.textContent = `"${query}" için arama sonuçları`;
+                        }
+                        
+                        // Sonuçları getir
+                        fetchSearchResults(query);
+                    }
+                    // Form doğal davranışına devam eder (başka sayfadaysak)
+                });
+                
+                // Canlı arama
                 let searchTimeout;
                 
                 pageSearchInput.addEventListener('input', function() {
                     const query = this.value.trim();
                     
-                    // Timeout temizle
                     clearTimeout(searchTimeout);
                     
                     if (query.length < 2) {
@@ -693,22 +894,14 @@
                         return;
                     }
                     
-                    // 300ms gecikme ile arama yap
                     searchTimeout = setTimeout(() => {
                         fetchLiveSearchResults(query);
                     }, 300);
                 });
                 
-                // Öneriler dışında bir yere tıklandığında önerileri kapat
+                // Belge tıklaması
                 document.addEventListener('click', function(e) {
-                    if (!pageSearchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
-                        searchSuggestions.classList.remove('active');
-                    }
-                });
-                
-                // ESC tuşu ile önerileri kapat
-                pageSearchInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape') {
+                    if (!pageSearchForm.contains(e.target) && !searchSuggestions.contains(e.target)) {
                         searchSuggestions.classList.remove('active');
                     }
                 });
@@ -720,10 +913,14 @@
             const resultsGrid = document.getElementById('results-grid');
             const resultsCount = document.getElementById('results-count');
             
+            if (!resultsGrid || !resultsCount) return;
+            
             // Filtreleme parametrelerini al
-            const categoryFilter = document.getElementById('category-filter').value;
-            const priceFilter = document.getElementById('price-filter').value;
-            const sortFilter = document.getElementById('sort-filter').value;
+            const priceFilter = document.getElementById('price-filter');
+            const sortFilter = document.getElementById('sort-filter');
+            
+            const priceValue = priceFilter ? priceFilter.value : '';
+            const sortValue = sortFilter ? sortFilter.value : '';
             
             // Yükleniyor göster
             resultsGrid.innerHTML = `
@@ -737,19 +934,13 @@
                 let apiUrl = `/api/products/search?q=${encodeURIComponent(query)}`;
                 
                 // Filtreleri ekle
-                if (categoryFilter) {
-                    apiUrl += `&category=${encodeURIComponent(categoryFilter)}`;
+                if (priceValue) {
+                    apiUrl += `&price=${encodeURIComponent(priceValue)}`;
                 }
                 
-                if (priceFilter) {
-                    apiUrl += `&price=${encodeURIComponent(priceFilter)}`;
+                if (sortValue) {
+                    apiUrl += `&sort=${encodeURIComponent(sortValue)}`;
                 }
-                
-                if (sortFilter) {
-                    apiUrl += `&sort=${encodeURIComponent(sortFilter)}`;
-                }
-                
-                console.log('Arama API çağrısı:', apiUrl);
                 
                 const response = await fetch(apiUrl);
                 
@@ -758,7 +949,6 @@
                 }
                 
                 const data = await response.json();
-                console.log('Arama sonuçları:', data);
                 
                 // Sonuç sayısını güncelle
                 resultsCount.textContent = `${data.length} sonuç bulundu`;
@@ -821,7 +1011,6 @@
                 }
                 
                 const data = await response.json();
-                console.log('Canlı arama sonuçları:', data);
                 
                 if (data.length === 0) {
                     searchSuggestions.innerHTML = `
@@ -832,7 +1021,7 @@
                 } else {
                     // Önerileri listele
                     searchSuggestions.innerHTML = data.map(item => `
-                        <div class="search-suggestion" onclick="window.location.href='/views/search.html?q=${encodeURIComponent(item.name)}'">
+                        <div class="search-suggestion" onclick="goToProduct('${item._id}')">
                             <div class="suggestion-image">
                                 <img src="${item.image || '../img/product-placeholder.jpg'}" 
                                      alt="${item.name}" 
@@ -845,6 +1034,15 @@
                             </div>
                         </div>
                     `).join('');
+                    
+                    // Tüm sonuçları gösterme butonunu ekle
+                    searchSuggestions.innerHTML += `
+                        <div class="search-suggestion view-all" onclick="window.location.href='/views/search.html?q=${encodeURIComponent(query)}'">
+                            <div class="view-all-text">
+                                <i class="fas fa-search"></i> Tüm sonuçları görüntüle
+                            </div>
+                        </div>
+                    `;
                 }
                 
                 // Önerileri göster
@@ -868,15 +1066,33 @@
         
         // Favorilere ekle
         function addToFavorites(productId) {
-            console.log(`Ürün favorilere eklendi: ${productId}`);
-            // Favoriye ekleme API çağrısı burada yapılacak
-            showNotification('Ürün favorilere eklendi', 'success');
+            event.stopPropagation(); // Ürün kartına tıklamanın etkisini engelle
+            
+            // Favori işlemlerini localStorage'da yap
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            
+            // Favorilerde varsa çıkar, yoksa ekle
+            const index = favorites.indexOf(productId);
+            if (index === -1) {
+                favorites.push(productId);
+                showNotification('Ürün favorilere eklendi', 'success');
+            } else {
+                favorites.splice(index, 1);
+                showNotification('Ürün favorilerden çıkarıldı', 'info');
+            }
+            
+            localStorage.setItem('favorites', JSON.stringify(favorites));
         }
         
         // Sepete ekle
         function addToCart(productId) {
-            console.log(`Ürün sepete eklendi: ${productId}`);
-            // Sepete ekleme API çağrısı burada yapılacak
+            event.stopPropagation(); // Ürün kartına tıklamanın etkisini engelle
+            
+            // Sepet işlemlerini localStorage'da yap
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart.push(productId);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            
             showNotification('Ürün sepete eklendi', 'success');
         }
         
@@ -906,6 +1122,11 @@
                 }, 300);
             }, 3000);
         }
+        
+        // Global window fonksiyonları tanımla
+        window.goToProduct = goToProduct;
+        window.addToFavorites = addToFavorites;
+        window.addToCart = addToCart;
     </script>
 </body>
 </html> 

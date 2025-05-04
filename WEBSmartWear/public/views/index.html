@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ana Sayfa | SmartWear</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/components/navbar.css">
-    <link rel="stylesheet" href="../css/components/product-card.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
+    <link rel="stylesheet" href="/css/components/product-card.css">
+    <link rel="stylesheet" href="/css/components/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         /* Ana sayfa için özel stiller */
@@ -287,6 +288,197 @@
                 gap: 15px;
             }
         }
+        
+        /* Arama çubuğu stilleri */
+        .search-container {
+            max-width: 600px;
+            margin: 30px auto;
+            position: relative;
+            z-index: 1000;
+        }
+        
+        .search-form {
+            display: flex;
+            background: white;
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 15px 25px;
+            border: none;
+            outline: none;
+            font-size: 1.1rem;
+            color: #333;
+            background: white;
+            width: calc(100% - 120px);
+        }
+        
+        .search-button {
+            padding: 15px 30px;
+            background: var(--primary-color);
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .search-button:hover {
+            background: var(--accent-color);
+        }
+        
+        .search-button i {
+            font-size: 1.1rem;
+        }
+        
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: none;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1001;
+        }
+        
+        .search-suggestions.active {
+            display: block;
+        }
+        
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .suggestion-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-right: 15px;
+        }
+        
+        .suggestion-details {
+            flex: 1;
+        }
+        
+        .suggestion-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+        
+        .suggestion-category {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        
+        .suggestion-price {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .suggestion-item.no-results,
+        .suggestion-item.error {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .search-container {
+                margin: 20px 15px;
+            }
+            
+            .search-form {
+                flex-direction: row;
+            }
+            
+            .search-input {
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+            
+            .search-button {
+                padding: 12px 20px;
+                min-width: 100px;
+            }
+            
+            .suggestion-image {
+                width: 50px;
+                height: 50px;
+            }
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-out 2.7s forwards;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .search-container {
+                max-width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            #main-search-input {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+            
+            #main-search-button {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -296,24 +488,23 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
-            <h1>Moda Sizinle Başlar</h1>
-            <p>SmartWear ile tarzınızı yansıtan en yeni ve trend ürünleri keşfedin. Şıklık ve konfor bir arada.</p>
+            <h1>SmartWear'a Hoş Geldiniz</h1>
+            <p>Modanın ve stilin buluştuğu nokta. En yeni koleksiyonlarımızı keşfedin.</p>
             
-            <!-- Arama Formu -->
+            <!-- Arama Çubuğu -->
             <div class="search-container">
-                <form class="main-search-form" id="main-search-form">
-                    <input type="text" id="main-search-input" placeholder="Ürün, kategori veya marka arayın..." autocomplete="off">
-                    <button type="submit" id="main-search-button">
+                <form class="search-form" action="/views/search.html" method="GET">
+                    <input type="text" class="search-input" name="q" placeholder="Ürün, kategori veya marka arayın..." autocomplete="off">
+                    <button type="submit" class="search-button">
                         <i class="fas fa-search"></i> Ara
                     </button>
                 </form>
-                <!-- Arama Önerileri -->
-                <div class="search-suggestions" id="search-suggestions"></div>
+                <div class="search-suggestions"></div>
             </div>
-            
+
             <div class="hero-buttons">
-                <a href="/views/clothing.html" class="btn">Giyim Koleksiyonu</a>
-                <a href="/views/accessories.html" class="btn-outline">Aksesuarlar</a>
+                <a href="/views/collections.html" class="btn">Koleksiyonları Keşfet</a>
+                <a href="/views/about.html" class="btn-outline">Hakkımızda</a>
             </div>
         </div>
     </section>
@@ -358,55 +549,119 @@
                     <i class="fas fa-spinner fa-spin"></i> Ürünler yükleniyor...
                 </div>
             </div>
-            <div class="view-all">
-                <a href="/views/clothing.html" class="btn-outline">Tüm Ürünleri Gör</a>
-            </div>
         </div>
     </section>
-
-    <!-- Newsletter Section -->
-    <section class="newsletter main-content-section">
-        <div class="container">
-            <div class="newsletter-content">
-                <h2>Yeniliklerden Haberdar Olun</h2>
-                <p>Erkek modasındaki en son trendler, yeni koleksiyonlar ve özel indirimler için bültenimize abone olun.</p>
-                <form id="newsletter-form" class="newsletter-form">
-                    <input type="email" placeholder="E-posta adresiniz" required>
-                    <button type="submit" class="btn">Abone Ol</button>
-                </form>
-            </div>
-        </div>
-    </section>
-
-    <!-- Notification Container -->
-    <div id="notification-container"></div>
 
     <!-- Footer will be loaded here -->
     <div id="footer-container"></div>
 
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
     <!-- Load Components -->
     <script src="../js/components/navbar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/main.js"></script>
     <script>
-        // Load navbar
-        fetch('../components/navbar.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('navbar-container').innerHTML = data;
-                // Update auth UI after navbar is loaded
-                if (typeof updateNavbarAuthUI === 'function') {
-                    updateNavbarAuthUI();
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navbar'ı yükle
+            fetch('../components/navbar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('navbar-container').innerHTML = data;
+                    if (typeof updateNavbarAuthUI === 'function') {
+                        updateNavbarAuthUI();
+                    }
+                });
+
+            // Footer'ı yükle
+            fetch('../components/footer.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('footer-container').innerHTML = data;
+                });
+
+            // Öne çıkan ürünleri yükle
+            fetchFeaturedProducts();
+
+            // Arama işlevselliği
+            const searchForm = document.querySelector('.search-form');
+            const searchInput = document.querySelector('.search-input');
+            const searchSuggestions = document.querySelector('.search-suggestions');
+            let searchTimeout;
+
+            // Anlık arama önerileri
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.trim();
+                clearTimeout(searchTimeout);
+
+                if (query.length < 2) {
+                    searchSuggestions.innerHTML = '';
+                    searchSuggestions.classList.remove('active');
+                    return;
+                }
+
+                searchTimeout = setTimeout(() => {
+                    fetch(`/api/products/live-search?q=${encodeURIComponent(query)}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Arama hatası oluştu');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.length === 0) {
+                                searchSuggestions.innerHTML = `
+                                    <div class="suggestion-item">
+                                        <p>"${query}" için sonuç bulunamadı</p>
+                                    </div>
+                                `;
+                            } else {
+                                searchSuggestions.innerHTML = data.map(product => `
+                                    <div class="suggestion-item" onclick="window.location.href='/views/product.html?id=${product._id}'">
+                                        <img src="${product.image || '../img/product-placeholder.jpg'}" 
+                                             alt="${product.name}" 
+                                             class="suggestion-image"
+                                             onerror="this.onerror=null; this.src='../img/product-placeholder.jpg';">
+                                        <div class="suggestion-details">
+                                            <div class="suggestion-name">${product.name}</div>
+                                            <div class="suggestion-category">${product.category}</div>
+                                            <div class="suggestion-price">${product.price.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</div>
+                                        </div>
+                                    </div>
+                                `).join('');
+                            }
+                            searchSuggestions.classList.add('active');
+                        })
+                        .catch(error => {
+                            console.error('Arama hatası:', error);
+                            searchSuggestions.innerHTML = `
+                                <div class="suggestion-item">
+                                    <p>Arama sırasında bir hata oluştu. Lütfen tekrar deneyin.</p>
+                                </div>
+                            `;
+                            searchSuggestions.classList.add('active');
+                        });
+                }, 300);
+            });
+
+            // Sayfa herhangi bir yerine tıklandığında önerileri kapat
+            document.addEventListener('click', (e) => {
+                if (!searchSuggestions.contains(e.target) && !searchInput.contains(e.target)) {
+                    searchSuggestions.classList.remove('active');
                 }
             });
-            
-        // Load footer
-        fetch('../components/footer.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('footer-container').innerHTML = data;
+
+            // Form gönderildiğinde kontrol
+            searchForm.addEventListener('submit', (e) => {
+                const query = searchInput.value.trim();
+                if (query.length < 2) {
+                    e.preventDefault();
+                    return;
+                }
             });
+        });
     </script>
-    <script src="../js/cart.js"></script>
-    <script src="../js/main.js"></script>
-    <script src="../js/auth.js"></script>
 </body>
 </html> 

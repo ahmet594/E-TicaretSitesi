@@ -41,9 +41,19 @@ const productSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    size: {
-        type: String,
-        default: ''
+    sizes: {
+        type: [String],
+        default: [],
+        validate: {
+            validator: function(sizes) {
+                // Giyim kategorisi için zorunlu
+                if (this.category === 'Giyim' && (!sizes || sizes.length === 0)) {
+                    return false;
+                }
+                return true;
+            },
+            message: 'Giyim ürünleri için en az bir beden seçeneği gereklidir.'
+        }
     },
     brand: {
         type: String,
@@ -53,6 +63,20 @@ const productSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
+});
+
+// Virtuals
+productSchema.virtual('availableSizes').get(function() {
+    return this.sizes || [];
+});
+
+// Middleware
+productSchema.pre('save', function(next) {
+    // Giyim kategorisi için varsayılan bedenler
+    if (this.category === 'Giyim' && (!this.sizes || this.sizes.length === 0)) {
+        this.sizes = ['XS', 'S', 'M', 'L', 'XL'];
+    }
+    next();
 });
 
 module.exports = mongoose.model('Product', productSchema);

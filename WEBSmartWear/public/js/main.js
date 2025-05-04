@@ -11,11 +11,51 @@ updateCartCount();
 // Fetch Featured Products
 async function fetchFeaturedProducts() {
     try {
+        console.log('🚀 Öne çıkan ürünler yükleniyor...');
+        const featuredProductsContainer = document.getElementById('featured-products');
+        
+        if (!featuredProductsContainer) {
+            console.error('⚠️ featured-products elementi bulunamadı!');
+            return;
+        }
+        
+        // Yükleniyor göstergesi
+        featuredProductsContainer.innerHTML = `
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Ürünler yükleniyor...
+            </div>
+        `;
+        
         const response = await fetch('/api/products/featured');
+        
+        if (!response.ok) {
+            throw new Error(`Öne çıkan ürünler yüklenirken hata oluştu: ${response.status}`);
+        }
+        
         const products = await response.json();
+        console.log(`✅ ${products.length} adet öne çıkan ürün bulundu`);
+        
+        if (products.length === 0) {
+            featuredProductsContainer.innerHTML = `
+                <div style="text-align: center; padding: 30px;">
+                    <p>Henüz öne çıkan ürün bulunmuyor.</p>
+                </div>
+            `;
+            return;
+        }
+        
         displayProducts(products);
     } catch (error) {
-        console.error('Error fetching featured products:', error);
+        console.error('❌ Öne çıkan ürünleri getirme hatası:', error);
+        
+        const featuredProductsContainer = document.getElementById('featured-products');
+        if (featuredProductsContainer) {
+            featuredProductsContainer.innerHTML = `
+                <div style="text-align: center; padding: 30px;">
+                    <p>Ürünler yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.</p>
+                </div>
+            `;
+        }
     }
 }
 
@@ -39,51 +79,88 @@ async function fetchProductsByCategory(category) {
 
 // Display Products
 function displayProducts(products) {
-    featuredProducts.innerHTML = products.map(product => `
-        <div class="product-card">
-            <a href="/views/product.html?id=${product._id}" class="product-link">
-                <div class="product-img-container">
-                    <img src="${product.image}" alt="${product.name}">
-                    ${product.stock <= 3 && product.stock > 0 ? `<span class="product-badge limited-stock">Sınırlı Stok</span>` : ''}
-                    ${product.stock === 0 ? `<span class="product-badge out-of-stock-badge">Tükendi</span>` : ''}
-                    ${product.featured ? `<span class="product-badge featured-badge">Öne Çıkan</span>` : ''}
-                </div>
-                <div class="product-card-content">
-                    <div class="product-brand">${product.brand || 'SmartWear'}</div>
-                    <h3 class="product-title">${product.name}</h3>
-                    <div class="product-details">
-                        <div class="product-category">${getCategoryDisplayName(product.category)}</div>
-                        ${product.color ? `<div class="product-color">Renk: ${product.color}</div>` : ''}
-                        ${product.size ? `<div class="product-size">Beden: ${product.size}</div>` : ''}
-                    </div>
-                    <div class="product-price-container">
-                        <p class="price">${product.price.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</p>
-                        <p class="stock ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">
-                            ${product.stock > 0 ? `${product.stock} adet stokta` : 'Stokta Yok'}
-                        </p>
-                    </div>
-                </div>
-            </a>
-            <div class="product-actions">
-                <button onclick="addToCart('${product._id}')" class="add-to-cart" ${product.stock === 0 ? 'disabled' : ''}>
-                    <i class="fas fa-shopping-cart"></i>
-                    ${product.stock > 0 ? 'Sepete Ekle' : 'Stokta Yok'}
-                </button>
-                <button onclick="addToFavorites('${product._id}')" class="add-to-favorites" title="Favorilere Ekle">
-                    <i class="far fa-heart"></i>
-                </button>
-            </div>
-        </div>
-    `).join('');
+    console.log('🎯 Ürünler DOM\'a ekleniyor:', products.length);
     
-    // Favorileri kontrol edip işaretle
-    checkFavorites();
+    const featuredProductsContainer = document.getElementById('featured-products');
+    if (!featuredProductsContainer) {
+        console.error('⚠️ Ürün gösterilecek konteyner bulunamadı!');
+        return;
+    }
+    
+    try {
+        // Ürün kartlarını oluştur
+        const productsHTML = products.map(product => {
+            // Ürün resmi kontrolü
+            const productImage = product.image || '../img/product-placeholder.jpg';
+            
+            // Fiyat formatı
+            const price = product.price 
+                ? product.price.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' }) 
+                : 'Fiyat bilgisi yok';
+                
+            return `
+                <div class="product-card">
+                    <a href="/views/product.html?id=${product._id}" class="product-link">
+                        <div class="product-img-container">
+                            <img src="${productImage}" alt="${product.name}" 
+                                 onerror="this.onerror=null; this.src='../img/product-placeholder.jpg';">
+                            ${product.stock <= 3 && product.stock > 0 ? `<span class="product-badge limited-stock">Sınırlı Stok</span>` : ''}
+                            ${product.stock === 0 ? `<span class="product-badge out-of-stock-badge">Tükendi</span>` : ''}
+                            ${product.featured ? `<span class="product-badge featured-badge">Öne Çıkan</span>` : ''}
+                        </div>
+                        <div class="product-card-content">
+                            <div class="product-brand">${product.brand || 'SmartWear'}</div>
+                            <h3 class="product-title">${product.name}</h3>
+                            <div class="product-details">
+                                ${product.color ? `<div class="product-color">Renk: ${product.color}</div>` : ''}
+                                ${product.size ? `<div class="product-size">Beden: ${product.size}</div>` : ''}
+                            </div>
+                            <div class="product-price-container">
+                                <p class="price">${price}</p>
+                                <p class="stock ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">
+                                    ${product.stock > 0 ? `${product.stock} adet stokta` : 'Stokta Yok'}
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                    <div class="product-actions">
+                        <button class="sepete-ekle-btn" onclick="addToCartFromListing('${product._id}', '${product.name}', ${product.price}, '${product.image}')" ${product.stock === 0 ? 'disabled' : ''}>
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Sepete Ekle</span>
+                        </button>
+                        <button class="favorite-btn" onclick="toggleFavorite('${product._id}')">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // DOM'a ekleme
+        featuredProductsContainer.innerHTML = productsHTML;
+        
+        // Favorileri kontrol edip işaretle
+        setTimeout(() => {
+            checkFavorites();
+        }, 100);
+        
+        console.log('✅ Ürünler başarıyla gösterildi');
+    } catch (error) {
+        console.error('❌ Ürünleri gösterirken hata oluştu:', error);
+        featuredProductsContainer.innerHTML = `
+            <div style="text-align: center; padding: 30px;">
+                <p>Ürünler gösterilirken bir hata oluştu: ${error.message}</p>
+            </div>
+        `;
+    }
 }
 
 // Kategorilerin görünen adlarını döndürür
 function getCategoryDisplayName(category) {
     const categoryDisplayNames = {
-        'Erkek': 'Erkek'
+        'Giyim': 'Giyim',
+        'Ayakkabı': 'Ayakkabı',
+        'Aksesuar': 'Aksesuar'
     };
     
     return categoryDisplayNames[category] || category;
@@ -184,7 +261,7 @@ function addToFavorites(productId) {
 // Favorileri kontrol et ve işaretle
 function checkFavorites() {
     const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-    const favoriteButtons = document.querySelectorAll('.add-to-favorites');
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
     
     favoriteButtons.forEach(button => {
         const productId = button.getAttribute('onclick').split("'")[1];
@@ -200,309 +277,151 @@ function checkFavorites() {
     });
 }
 
+// Global product function
+window.goToProduct = function(productId) {
+    console.log('🔗 Ürün sayfasına yönlendiriliyor:', productId);
+    window.location.href = `/views/product.html?id=${productId}`;
+};
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Sayfa yükleniyor...');
+    // Arama işlevselliğini kur
+    setTimeout(() => {
+        setupSearchFunctionality();
+    }, 1000);
+});
+
+// Sayfa tamamen yüklendiğinde
+window.onload = function() {
+    console.log('📱 Sayfa tamamen yüklendi - İçerik başlatılıyor');
+    
+    // Öne çıkan ürünleri yükle
     fetchFeaturedProducts();
-});
-
-// Ana sayfa arama formunu ayarla
-document.addEventListener('DOMContentLoaded', function() {
-    // İşlevler tanımlanmadan önce global olarak erişilebilir olduğundan emin ol
-    window.goToProduct = function(productId) {
-        window.location.href = `/views/product.html?id=${productId}`;
-    };
-
-    window.performMainSearch = performMainSearch;
     
-    const mainSearchForm = document.getElementById('main-search-form');
+    // Arama inputunu kontrol et (eski arama kutusu yoksa görmezden gelir)
     const mainSearchInput = document.getElementById('main-search-input');
-    const searchSuggestions = document.getElementById('search-suggestions');
-    
-    if (mainSearchForm && mainSearchInput) {
-        console.log('Arama formu bulundu, olaylar ayarlanıyor...');
+    if (mainSearchInput) {
+        console.log('✅ Ana arama input elementi bulundu');
+        mainSearchInput.addEventListener('input', handleSearchInput);
         
-        // Arama formu submit olduğunda
-        mainSearchForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const query = mainSearchInput.value.trim();
-            
-            if (query) {
-                performMainSearch(query);
-                // Önerileri kapat
-                searchSuggestions.classList.remove('active');
-            }
-        });
-        
-        // Canlı arama özelliği
-        let searchTimeout;
-        
-        mainSearchInput.addEventListener('input', function() {
-            const query = this.value.trim();
-            console.log('Arama girişi:', query);
-            
-            // Timeout temizle (typing durduktan sonra istek yap)
-            clearTimeout(searchTimeout);
-            
-            if (query.length < 2) {
-                searchSuggestions.classList.remove('active');
-                return;
-            }
-            
-            // 300ms gecikme ile arama yap (çok fazla istek göndermemek için)
-            searchTimeout = setTimeout(() => {
-                fetchLiveSearchResults(query);
-            }, 300);
-        });
-        
-        // Öneriler dışında bir yere tıklandığında önerileri kapat
-        document.addEventListener('click', function(e) {
-            if (!mainSearchForm.contains(e.target) && !searchSuggestions.contains(e.target)) {
-                searchSuggestions.classList.remove('active');
-            }
-        });
-        
-        // ESC tuşu ile önerileri kapat
-        mainSearchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                searchSuggestions.classList.remove('active');
-            }
-        });
+        if (mainSearchInput.value.trim().length >= 2) {
+            handleSearchInput.call(mainSearchInput);
+        }
     } else {
-        console.log('Arama formu bulunamadı!', {
-            mainSearchForm,
-            mainSearchInput,
-            searchSuggestions
-        });
+        console.log('ℹ️ Ana sayfada arama elementi bulunmuyor - normal davranış');
     }
-});
+};
 
-// Canlı arama sonuçlarını getir
-async function fetchLiveSearchResults(query) {
-    console.log('Canlı arama başlatıldı:', query);
-    const searchSuggestions = document.getElementById('search-suggestions');
+// Basitleştirilmiş arama işlevi - Direkt global tanımla
+function handleSearchInput() {
+    const query = this.value.trim();
+    const searchContainer = document.querySelector('.search-container');
+    let searchSuggestions = document.getElementById('search-suggestions');
+    
+    console.log('🔍 Arama girişi:', query);
+    
+    // Eğer öneriler bulunamazsa, yeni oluştur (olmaması durumunda)
+    if (!searchSuggestions && searchContainer) {
+        console.log('⚠️ Öneriler elementi bulunamadı, yeniden oluşturuluyor...');
+        searchSuggestions = document.createElement('div');
+        searchSuggestions.id = 'search-suggestions';
+        searchSuggestions.className = 'search-suggestions';
+        searchContainer.appendChild(searchSuggestions);
+    }
     
     if (!searchSuggestions) {
-        console.error('Arama önerileri konteynerı bulunamadı!');
+        console.error('❌ Arama önerileri elementi bulunamadı ve oluşturulamadı!');
         return;
     }
     
-    try {
-        const apiUrl = `/api/products/search?query=${encodeURIComponent(query)}`;
-        console.log('API çağrısı yapılıyor:', apiUrl);
-        
-        const response = await fetch(apiUrl);
-        console.log('API yanıtı alındı, durum kodu:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Arama sonuçları:', data);
-        
-        // En fazla 5 öneri göster
-        const maxSuggestions = Math.min(5, data.length);
-        const suggestions = data.slice(0, maxSuggestions);
-        
-        if (suggestions.length === 0) {
-            searchSuggestions.classList.remove('active');
-            return;
-        }
-        
-        // Önerileri oluştur
-        let suggestionsHTML = '';
-        
-        suggestions.forEach(product => {
-            // Kategori için ikon belirle
-            let categoryIcon = 'tshirt'; // Varsayılan ikon
-            
-            if (product.category === 'Ayakkabı') {
-                categoryIcon = 'shoe-prints';
-            } else if (product.category === 'Aksesuar') {
-                categoryIcon = 'hat-cowboy';
-            }
-            
-            const price = product.price ? `₺${product.price.toFixed(2)}` : 'Fiyat bilgisi yok';
-            
-            // Görseller için image veya imagePath özelliğini kontrol et
-            const productImage = product.imagePath || product.image || null;
-            
-            suggestionsHTML += `
-                <div class="suggestion-item" data-id="${product._id}" onclick="goToProduct('${product._id}')">
-                    <div class="suggestion-img">
-                        ${productImage 
-                            ? `<img src="${productImage}" alt="${product.name}" onerror="this.onerror=null; this.src='/public/images/products/default.jpg';">` 
-                            : `<i class="fas fa-${categoryIcon}"></i>`
-                        }
-                    </div>
-                    <div class="suggestion-content">
-                        <div class="suggestion-title">${product.name}</div>
-                        <div class="suggestion-details">
-                            <span class="suggestion-category">${product.category || ''}</span>
-                            <span class="suggestion-price">${price}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        // Tüm sonuçları göster butonu
-        if (data.length > maxSuggestions) {
-            const escapedQuery = query.replace(/'/g, "\\'");
-            suggestionsHTML += `
-                <div class="search-all-results" onclick="performMainSearch('${escapedQuery}')">
-                    Tüm sonuçları gör (${data.length}) <i class="fas fa-arrow-right"></i>
-                </div>
-            `;
-        }
-        
-        searchSuggestions.innerHTML = suggestionsHTML;
-        searchSuggestions.classList.add('active');
-        
-    } catch (error) {
-        console.error('Canlı arama hatası:', error);
+    // 2 karakterden az ise işlem yapma
+    if (query.length < 2) {
         searchSuggestions.classList.remove('active');
-    }
-}
-
-// Ana sayfadan arama yapma fonksiyonu
-async function performMainSearch(query) {
-    console.log('Ana sayfa araması başlatıldı:', query);
-    
-    // Search results container oluştur veya mevcut olanı al
-    let searchResults = document.getElementById('inline-search-results');
-    
-    if (!searchResults) {
-        searchResults = document.createElement('section');
-        searchResults.id = 'inline-search-results';
-        searchResults.className = 'search-results-section';
-        
-        // Hero section'dan sonra yerleştir
-        const heroSection = document.querySelector('.hero');
-        if (heroSection) {
-            heroSection.parentNode.insertBefore(searchResults, heroSection.nextSibling);
-        } else {
-            document.body.appendChild(searchResults);
-        }
+        return;
     }
     
-    // Loading durumunu göster
-    searchResults.innerHTML = `
-        <div class="search-results-container">
-            <h2>Arama Sonuçları: "${query}"</h2>
-            <div class="loading"><i class="fas fa-spinner fa-spin"></i> Aranıyor...</div>
-        </div>
-    `;
+    // Yükleniyor göster
+    searchSuggestions.innerHTML = '<div class="suggestion-item"><p><i class="fas fa-spinner fa-spin"></i> Aranıyor...</p></div>';
+    searchSuggestions.classList.add('active');
     
-    // Search results'ı görünür yap
-    searchResults.style.display = 'block';
-    
-    // Sonuçlara kaydır
-    searchResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    
-    try {
-        const apiUrl = `/api/products/search?query=${encodeURIComponent(query)}`;
-        console.log('API çağrısı yapılıyor:', apiUrl);
-        
-        const response = await fetch(apiUrl);
-        console.log('API yanıtı alındı, durum kodu:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`Arama API hatası: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log('Arama sonuçları:', data, 'Sonuç sayısı:', data.length);
-        
-        let resultsHTML;
-        
-        if (data.length === 0) {
-            resultsHTML = `
-                <div class="search-results-container">
-                    <h2>Arama Sonuçları: "${query}"</h2>
-                    <div class="no-results">
-                        <i class="fas fa-search"></i>
-                        <p>"${query}" için sonuç bulunamadı</p>
-                        <p class="search-tip">Farklı anahtar kelimeler deneyebilir veya kategori ismi ile arama yapabilirsiniz.</p>
-                    </div>
-                </div>
-            `;
-        } else {
-            resultsHTML = `
-                <div class="search-results-container">
-                    <h2>Arama Sonuçları: "${query}" (${data.length} ürün)</h2>
-                    <div class="results-grid">
-            `;
+    // API'ye istek gönder
+    fetch(`/api/products/live-search?q=${encodeURIComponent(query)}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`API hatası: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(`✅ ${data.length} adet sonuç bulundu`);
             
-            data.forEach(product => {
-                // Kategori için ikon belirle
-                let categoryIcon = 'tshirt'; // Varsayılan ikon
-                
-                if (product.category === 'Ayakkabı') {
-                    categoryIcon = 'shoe-prints';
-                } else if (product.category === 'Aksesuar') {
-                    categoryIcon = 'hat-cowboy';
-                }
-                
-                // Kullanıcı-dostu kategori metnini oluştur
-                let categoryText = product.category || 'Kategori belirtilmemiş';
-                if (product.subcategory) {
-                    categoryText += ` > ${product.subcategory}`;
-                }
-                
-                const price = product.price ? `₺${product.price.toFixed(2)}` : 'Fiyat bilgisi yok';
-                // Görseller için image veya imagePath özelliğini kontrol et
-                const productImage = product.imagePath || product.image || null;
-                
-                resultsHTML += `
-                    <div class="product-card">
-                        <a href="/views/product.html?id=${product._id}" class="product-link">
-                            <div class="product-img-container">
-                                ${productImage 
-                                    ? `<img src="${productImage}" alt="${product.name}" loading="lazy" onerror="this.onerror=null; this.src='/public/images/products/default.jpg';">` 
-                                    : `<div class="product-img-placeholder"><i class="fas fa-${categoryIcon} fa-3x"></i></div>`
-                                }
-                            </div>
-                            <div class="product-card-content">
-                                <h4 class="product-title">${product.name}</h4>
-                                <span class="product-category">${categoryText}</span>
-                                <p class="price">${price}</p>
-                                <div class="product-actions">
-                                    <button class="view-product">Ürüne Git <i class="fas fa-arrow-right"></i></button>
-                                </div>
-                            </div>
-                        </a>
+            if (data.length === 0) {
+                searchSuggestions.innerHTML = `
+                    <div class="suggestion-item no-results">
+                        <p>"${query}" için sonuç bulunamadı</p>
                     </div>
                 `;
-            });
-            
-            resultsHTML += `
+            } else {
+                // Önerileri oluştur
+                let suggestionsHTML = '';
+                
+                // Her ürün için bir öneri kalemi oluştur
+                data.forEach(product => {
+                    const productImage = product.image || '../img/product-placeholder.jpg';
+                    const price = product.price.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+                    
+                    suggestionsHTML += `
+                        <div class="suggestion-item" onclick="goToProduct('${product._id}')">
+                            <div class="suggestion-img">
+                                <img src="${productImage}" alt="${product.name}" onerror="this.onerror=null; this.src='../img/product-placeholder.jpg';">
+                            </div>
+                            <div class="suggestion-content">
+                                <div class="suggestion-title">${product.name}</div>
+                                <div class="suggestion-details">
+                                    <span class="suggestion-category">${product.category || ''}</span>
+                                    <span class="suggestion-price">${price}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                // "Tüm sonuçları gör" bağlantısı ekle
+                suggestionsHTML += `
+                    <div class="search-all-results" onclick="window.location.href='/views/search.html?q=${encodeURIComponent(query)}'">
+                        Tüm sonuçları gör <i class="fas fa-arrow-right"></i>
                     </div>
+                `;
+                
+                searchSuggestions.innerHTML = suggestionsHTML;
+            }
+            
+            // Önerileri göster
+            searchSuggestions.classList.add('active');
+        })
+        .catch(error => {
+            console.error('❌ Arama hatası:', error);
+            searchSuggestions.innerHTML = `
+                <div class="suggestion-item error">
+                    <p>Arama sırasında bir hata oluştu: ${error.message}</p>
                 </div>
             `;
-        }
-        
-        searchResults.innerHTML = resultsHTML;
-        
-        // Add event listeners to view product buttons
-        searchResults.querySelectorAll('.view-product').forEach(button => {
-            button.addEventListener('click', (e) => {
-                // Burada bir şey yapmaya gerek yok çünkü parent <a> zaten ürün sayfasına yönlendirecek
-                e.stopPropagation(); // Olası çift tıklama sorunlarını önle
-            });
+            searchSuggestions.classList.add('active');
         });
-        
-    } catch (error) {
-        console.error('Search error details:', error);
-        searchResults.innerHTML = `
-            <div class="search-results-container">
-                <h2>Arama Sonuçları: "${query}"</h2>
-                <div class="error">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Arama sırasında bir hata oluştu: ${error.message}</p>
-                    <p>Lütfen daha sonra tekrar deneyin.</p>
-                </div>
-            </div>
-        `;
+    
+    // Dokümana tıklama olayını ekle (eğer yoksa)
+    if (!window.searchClickHandlerAdded) {
+        document.addEventListener('click', function(event) {
+            const searchSuggestions = document.getElementById('search-suggestions');
+            const mainSearchForm = document.getElementById('main-search-form');
+            
+            if (searchSuggestions && mainSearchForm) {
+                if (!mainSearchForm.contains(event.target) && !searchSuggestions.contains(event.target)) {
+                    searchSuggestions.classList.remove('active');
+                }
+            }
+        });
+        window.searchClickHandlerAdded = true;
     }
 }

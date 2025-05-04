@@ -83,7 +83,8 @@ function displayProducts(products) {
         <div class="product-card">
             <a href="/views/product.html?id=${product._id}" class="product-link">
                 <div class="product-img-container">
-                    <img src="${product.image}" alt="${product.name}">
+                    <img src="${product.image}" alt="${product.name}" 
+                         onerror="this.onerror=null; this.src='../img/product-placeholder.jpg';">
                     ${product.stock <= 3 && product.stock > 0 ? `<span class="product-badge limited-stock">Sınırlı Stok</span>` : ''}
                     ${product.stock === 0 ? `<span class="product-badge out-of-stock-badge">Tükendi</span>` : ''}
                     ${product.featured ? `<span class="product-badge featured-badge">Öne Çıkan</span>` : ''}
@@ -92,8 +93,6 @@ function displayProducts(products) {
                     <div class="product-brand">${product.brand || 'SmartWear'}</div>
                     <h3 class="product-title">${product.name}</h3>
                     <div class="product-details">
-                        <div class="product-category">${getCategoryDisplayName(product.category)}</div>
-                        ${product.subcategory ? `<div class="product-subcategory">${product.subcategory}</div>` : ''}
                         ${product.color ? `<div class="product-color">Renk: ${product.color}</div>` : ''}
                         ${product.size ? `<div class="product-size">Beden: ${product.size}</div>` : ''}
                     </div>
@@ -106,11 +105,11 @@ function displayProducts(products) {
                 </div>
             </a>
             <div class="product-actions">
-                <button onclick="addToCartFromListing('${product._id}', '${product.name}', ${product.price}, '${product.image}')" class="add-to-cart" ${product.stock === 0 ? 'disabled' : ''}>
+                <button class="sepete-ekle-btn" onclick="addToCartFromListing('${product._id}', '${product.name}', ${product.price}, '${product.image}')" ${product.stock === 0 ? 'disabled' : ''}>
                     <i class="fas fa-shopping-cart"></i>
-                    ${product.stock > 0 ? 'Sepete Ekle' : 'Stokta Yok'}
+                    <span>Sepete Ekle</span>
                 </button>
-                <button onclick="addToFavorites('${product._id}')" class="add-to-favorites" title="Favorilere Ekle">
+                <button class="favorite-btn" onclick="toggleFavorite('${product._id}')">
                     <i class="far fa-heart"></i>
                 </button>
             </div>
@@ -172,56 +171,77 @@ function addToCartFromListing(productId, name, price, image) {
     }
 }
 
-// Add to favorites
-function addToFavorites(productId) {
-    let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-    
-    // Favorilerde varsa çıkar, yoksa ekle
+// Favorileri localStorage'da saklamak için yardımcı fonksiyonlar
+function getFavorites() {
+    const favorites = localStorage.getItem('favorites');
+    return favorites ? JSON.parse(favorites) : [];
+}
+
+function saveFavorites(favorites) {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+}
+
+// Favorilere ekleme/çıkarma işlemi
+async function toggleFavorite(productId) {
+    const favorites = getFavorites();
     const index = favorites.indexOf(productId);
+    
     if (index === -1) {
+        // Favorilere ekle
         favorites.push(productId);
-        showNotification('Ürün favorilere eklendi!');
+        showNotification('Ürün favorilere eklendi');
     } else {
+        // Favorilerden çıkar
         favorites.splice(index, 1);
-        showNotification('Ürün favorilerden çıkarıldı!');
+        showNotification('Ürün favorilerden çıkarıldı');
     }
     
-    localStorage.setItem('favorites', JSON.stringify(favorites));
+    saveFavorites(favorites);
     
-    // Favorileri güncelle
-    checkFavorites();
+    // Favorilere ekleme/çıkarma butonunun görünümünü güncelle
+    const button = event.target.closest('.favorite-btn');
+    button.classList.toggle('active');
+    
+    // Sayfa yenilenmeden ürün kartlarını güncelle
+    updateProductCards();
 }
 
-// Favorileri kontrol et ve işaretle
-function checkFavorites() {
-    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-    const favoriteButtons = document.querySelectorAll('.add-to-favorites');
-    
-    favoriteButtons.forEach(button => {
-        const productId = button.getAttribute('onclick').split("'")[1];
-        if (favorites.includes(productId)) {
-            button.innerHTML = '<i class="fas fa-heart"></i>';
-            button.classList.add('active');
-            button.title = 'Favorilerden Çıkar';
-        } else {
-            button.innerHTML = '<i class="far fa-heart"></i>';
-            button.classList.remove('active');
-            button.title = 'Favorilere Ekle';
-        }
-    });
-}
-
-// Show notification
+// Bildirim gösterme fonksiyonu
 function showNotification(message) {
     const notification = document.createElement('div');
     notification.className = 'notification';
     notification.textContent = message;
+    
     document.body.appendChild(notification);
-
+    
+    // 3 saniye sonra bildirimi kaldır
     setTimeout(() => {
-        notification.remove();
-    }, 3000);
+        notification.classList.add('fade-out');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 2700);
 }
+
+// Ürün kartlarını güncelleme fonksiyonu
+function updateProductCards() {
+    const favorites = getFavorites();
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
+    
+    favoriteButtons.forEach(button => {
+        const productId = button.getAttribute('onclick').match(/'([^']+)'/)[1];
+        if (favorites.includes(productId)) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+    });
+}
+
+// Sayfa yüklendiğinde favori durumlarını güncelle
+document.addEventListener('DOMContentLoaded', () => {
+    updateProductCards();
+});
 
 // Setup category filters
 function setupCategoryFilters() {

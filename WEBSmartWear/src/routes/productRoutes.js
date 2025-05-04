@@ -24,6 +24,9 @@ router.get('/', asyncHandler(productController.getAllProducts));
 // Get featured products
 router.get('/featured', asyncHandler(productController.getFeaturedProducts));
 
+// Live search products (instant suggestions)
+router.get('/live-search', asyncHandler(productController.liveSearchProducts));
+
 // Search products
 router.get('/search', asyncHandler(productController.searchProducts));
 

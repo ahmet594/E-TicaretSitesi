@@ -77,6 +77,22 @@
     color: var(--accent-color);
 }
 
+/* Büyüteç (arama) simgesi için stil */
+.search-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.search-icon i {
+    transition: transform 0.3s ease;
+}
+
+.search-icon:hover i {
+    transform: scale(1.1);
+}
+
 .cart-count {
     position: absolute;
     top: -8px;

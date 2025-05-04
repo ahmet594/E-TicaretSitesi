@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 
 data class CategoryUiState(
     val products: List<Product> = emptyList(),
+    val originalProducts: List<Product> = emptyList(),
     val error: String? = null
 )
 
@@ -37,6 +38,7 @@ class CategoryViewModel(
                 repository.getProductsByCategory(category).collect { products ->
                     _uiState.value = _uiState.value.copy(
                         products = products,
+                        originalProducts = products,
                         error = null
                     )
                 }
@@ -52,6 +54,64 @@ class CategoryViewModel(
     
     fun refreshProducts() {
         loadCategoryProducts()
+    }
+    
+    fun applyFilters(
+        selectedFilters: List<String>, 
+        priceRange: PriceRange?, 
+        sortOption: SortOption
+    ) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            
+            try {
+                // Orijinal ürün listesi üzerinden filtreleme yapılır
+                var filteredProducts = _uiState.value.originalProducts
+                
+                // Tür filtresi uygula
+                if (selectedFilters.isNotEmpty()) {
+                    filteredProducts = filteredProducts.filter { product ->
+                        // Ürünün subcategory alanında filtreye uygun değer var mı kontrol et
+                        selectedFilters.any { filter ->
+                            product.subcategory?.equals(filter, ignoreCase = true) == true ||
+                            // Eğer subcategory yoksa name veya etiketlerde de kontrol edelim
+                            product.name.contains(filter, ignoreCase = true) || 
+                            (product.tags?.any { it.contains(filter, ignoreCase = true) } ?: false)
+                        }
+                    }
+                }
+                
+                // Fiyat aralığı filtresi uygula
+                if (priceRange != null) {
+                    filteredProducts = filteredProducts.filter { product ->
+                        product.price >= priceRange.min && 
+                        (priceRange.max == Int.MAX_VALUE || product.price <= priceRange.max)
+                    }
+                }
+                
+                // Sıralama uygula
+                filteredProducts = when (sortOption) {
+                    SortOption.PRICE_LOW_TO_HIGH -> filteredProducts.sortedBy { it.price }
+                    SortOption.PRICE_HIGH_TO_LOW -> filteredProducts.sortedByDescending { it.price }
+                    SortOption.NEWEST -> {
+                        if (filteredProducts.all { it.createdAt != null }) {
+                            filteredProducts.sortedByDescending { it.createdAt }
+                        } else {
+                            filteredProducts
+                        }
+                    }
+                    SortOption.RECOMMENDED -> filteredProducts // Varsayılan sıralama
+                }
+                
+                _uiState.value = _uiState.value.copy(products = filteredProducts)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = "Filtreleme sırasında bir hata oluştu: ${e.message}"
+                )
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
     
     companion object {

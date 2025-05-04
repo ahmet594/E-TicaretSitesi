@@ -220,6 +220,21 @@ footer .list-inline-item a:hover {
     margin-bottom: 2rem;
 }
 
+.featured-products .add-to-cart-btn,
+.featured-products .sepete-ekle-btn {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.featured-products .add-to-cart-btn:hover,
+.featured-products .sepete-ekle-btn:hover {
+    background-color: var(--accent-color) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
 .category-filters {
     display: flex;
     justify-content: center;
@@ -249,36 +264,150 @@ footer .list-inline-item a:hover {
 }
 
 /* Ürün kartları için temel stiller */
-.product-grid {
+.products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 30px;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px 0;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px;
+    padding: 20px;
 }
 
+/* Product Card Styles */
 .product-card {
-    margin-bottom: 20px;
-    transition: transform 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--white);
     border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     overflow: hidden;
+    height: 100%;
+    min-height: 450px;
 }
 
 .product-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.product-card img {
+.product-link {
+    text-decoration: none;
+    color: inherit;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-img-container {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+    overflow: hidden;
+}
+
+.product-img-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.product-grid > * {
-    width: 100%;
-    max-width: 350px;
+.product-card-content {
+    padding: 15px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-brand {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.product-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.product-details {
+    margin-bottom: 10px;
+}
+
+.product-price-container {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.price {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.stock {
+    font-size: 0.9rem;
+}
+
+.product-actions {
+    padding: 15px;
+    display: flex;
+    gap: 10px;
+    background: var(--white);
+    border-top: 1px solid #eee;
+    margin-top: auto;
+}
+
+.sepete-ekle-btn {
+    flex: 1;
+    padding: 10px;
+    background-color: var(--accent-color);
+    color: var(--white);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.sepete-ekle-btn:hover:not(:disabled) {
+    background-color: #c0392b;
+}
+
+.sepete-ekle-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.favorite-btn {
+    padding: 10px;
+    background-color: transparent;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.favorite-btn:hover {
+    background-color: #f5f5f5;
+    border-color: #ccc;
+}
+
+.favorite-btn.active {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
 }
 
 /* Newsletter Section */
@@ -404,23 +533,28 @@ footer .list-inline-item a:hover {
 .product-detail-content {
     display: flex;
     flex-wrap: wrap;
+    gap: 30px;
+    padding: 30px;
 }
 
 .product-image {
-    flex: 1;
-    min-width: 300px;
+    flex: 0 0 400px;
+    max-width: 400px;
 }
 
 .product-image img {
     width: 100%;
-    height: 500px;
-    object-fit: cover;
+    height: 400px;
+    object-fit: contain;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    padding: 20px;
 }
 
 .product-info {
     flex: 1;
     min-width: 300px;
-    padding: 30px;
+    padding: 0;
 }
 
 .product-title {
@@ -439,6 +573,7 @@ footer .list-inline-item a:hover {
 .product-description {
     margin-bottom: 25px;
     line-height: 1.6;
+    color: #666;
 }
 
 .product-meta {
@@ -449,7 +584,7 @@ footer .list-inline-item a:hover {
 }
 
 .product-category, .product-stock {
-    padding: 5px 12px;
+    padding: 8px 16px;
     border-radius: 20px;
     font-size: 0.9rem;
 }
@@ -468,21 +603,71 @@ footer .list-inline-item a:hover {
     color: #e74c3c;
 }
 
+/* Beden seçimi için stiller */
+.size-options {
+    margin: 20px 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.size-options h4 {
+    font-size: 1rem;
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+.size-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.size-button {
+    padding: 8px 16px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    background: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.size-button:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.size-button.selected {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.size-button:disabled {
+    background-color: #f1f1f1;
+    border-color: #ddd;
+    color: #999;
+    cursor: not-allowed;
+}
+
 .product-actions {
+    margin-top: 30px;
     display: flex;
     gap: 15px;
 }
 
 .add-to-cart-btn, .add-to-favorites-btn {
-    padding: 12px 20px;
+    padding: 15px 25px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     font-weight: 500;
     transition: all 0.3s;
+    font-size: 1rem;
 }
 
 .add-to-cart-btn {
@@ -493,17 +678,20 @@ footer .list-inline-item a:hover {
 
 .add-to-cart-btn:hover:not(:disabled) {
     background-color: var(--accent-color);
+    transform: translateY(-2px);
 }
 
 .add-to-cart-btn:disabled {
     background-color: #ccc;
     cursor: not-allowed;
+    transform: none;
 }
 
 .add-to-favorites-btn {
     background-color: #f8f9fa;
     color: #666;
     border: 1px solid #ddd;
+    padding: 15px;
 }
 
 .add-to-favorites-btn:hover {
@@ -512,37 +700,35 @@ footer .list-inline-item a:hover {
     border-color: #ffcaca;
 }
 
-/* Notification */
+/* Bildirim stilleri */
 .notification {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background-color: var(--primary-color);
-    color: var(--white);
     padding: 15px 25px;
     border-radius: 4px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    color: white;
+    font-size: 0.9rem;
     z-index: 1000;
-    animation: slideIn 0.3s, fadeOut 0.3s 2.7s forwards;
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification.success {
+    background-color: #2ecc71;
+}
+
+.notification.error {
+    background-color: #e74c3c;
 }
 
 @keyframes slideIn {
-    from { transform: translateY(50px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
-
-@media (max-width: 768px) {
-    .product-image, .product-info {
-        flex: 100%;
+    from {
+        transform: translateX(100%);
+        opacity: 0;
     }
-    
-    .product-image img {
-        height: 300px;
+    to {
+        transform: translateX(0);
+        opacity: 1;
     }
 }
 
@@ -867,9 +1053,10 @@ footer .list-inline-item a:hover {
 
 /* Responsive Design */
 @media screen and (max-width: 768px) {
-    .results-grid {
+    .products-grid {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
+        gap: 15px;
+        padding: 15px;
     }
     
     .search-suggestions {
@@ -878,8 +1065,10 @@ footer .list-inline-item a:hover {
 }
 
 @media screen and (max-width: 480px) {
-    .results-grid {
+    .products-grid {
         grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 10px;
     }
     
     .search-suggestions {

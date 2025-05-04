@@ -13,21 +13,9 @@
         </div>
         <div class="nav-icons">
             <a href="/views/cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count">0</span></a>
-            
-            <!-- Auth links - shown when user is not logged in -->
-            <a href="/views/login.html" class="auth-link"><i class="fas fa-sign-in-alt"></i> Giriş</a>
-            <a href="/views/register.html" class="auth-link"><i class="fas fa-user-plus"></i> Kayıt</a>
-            
-            <!-- Profile link - shown when user is logged in -->
-            <div class="profile-link dropdown">
-                <a href="#" class="profile-icon"><i class="fas fa-user"></i> <span class="user-name">Kullanıcı</span></a>
-                <div class="dropdown-content">
-                    <a href="/views/profile.html">Profilim</a>
-                    <a href="/views/orders.html">Siparişlerim</a>
-                    <a href="/views/favorites.html">Favorilerim</a>
-                    <a href="/views/addresses.html">Adreslerim</a>
-                    <a href="#" onclick="logout()">Çıkış Yap</a>
-                </div>
+            <div class="auth-buttons">
+                <a href="/views/login.html" class="login-btn">Giriş Yap</a>
+                <a href="/views/register.html" class="register-btn">Kayıt Ol</a>
             </div>
         </div>
         <div class="mobile-menu-btn">

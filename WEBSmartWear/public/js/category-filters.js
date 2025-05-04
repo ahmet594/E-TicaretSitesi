@@ -87,12 +87,9 @@ function setupSubcategoryLinks() {
     document.head.appendChild(style);
 }
 
-// Alt kategoriye göre ürün filtreleme
-async function filterProductsBySubcategory(subcategory) {
-    showLoading();
-    
+// Tüm ürünleri getir ve sayıları güncelle
+async function loadAllProductsAndUpdateCounts() {
     try {
-        // Ana kategoriyi belirle (sayfa adından)
         const currentPath = window.location.pathname;
         let mainCategory = '';
         
@@ -103,47 +100,16 @@ async function filterProductsBySubcategory(subcategory) {
         } else if (currentPath.includes('accessories.html')) {
             mainCategory = 'Aksesuar';
         }
-        
-        // Eğer "Tümü" seçildiyse tüm kategori ürünlerini göster
-        if (subcategory === "Tümü") {
-            const response = await fetch(`/api/products/category/${mainCategory}`);
-            
-            if (!response.ok) {
-                throw new Error('Ürünler yüklenirken hata oluştu');
-            }
-            
-            const products = await response.json();
-            displayProducts(products);
-            updateProductCount(products.length);
-            updateSubcategoryCounts(products);
-            return;
-        }
-        
-        // Alt kategoriye göre API çağrısı yap
-        const response = await fetch(`/api/products/category/${mainCategory}/subcategory/${subcategory}`);
-        
+
+        const response = await fetch(`/api/products/category/${mainCategory}`);
         if (!response.ok) {
-            throw new Error('Alt kategori ürünleri yüklenirken hata oluştu');
+            throw new Error('Ürünler yüklenirken hata oluştu');
         }
-        
+
         const products = await response.json();
-        
-        // Filtrelenmiş ürünleri göster
-        displayProducts(products);
-        
-        // Ürün sayısını güncelle
-        updateProductCount(products.length);
         updateSubcategoryCounts(products);
     } catch (error) {
-        showError(error.message);
-    }
-}
-
-// Ürün sayısını güncelle
-function updateProductCount(count) {
-    const resultsCountElement = document.querySelector('.results-count span');
-    if (resultsCountElement) {
-        resultsCountElement.textContent = `${count} ürün bulundu`;
+        console.error('Ürün sayıları güncellenirken hata:', error);
     }
 }
 
@@ -163,8 +129,25 @@ function updateSubcategoryCounts(products) {
     
     // Her alt kategori için ürün sayısını hesapla
     products.forEach(product => {
-        if (product.subcategory && subcategoryCounts[product.subcategory] !== undefined) {
-            subcategoryCounts[product.subcategory]++;
+        if (product.subcategory) {
+            // Alt kategori adını normalize et
+            const normalizedSubcategory = product.subcategory.toLowerCase()
+                .replace(/\s+/g, '-') // Tüm boşlukları tire ile değiştir
+                .replace(/&/g, '-') // & işaretini tire ile değiştir
+                .replace(/ğ/g, 'g')
+                .replace(/ü/g, 'u')
+                .replace(/ş/g, 's')
+                .replace(/ı/g, 'i')
+                .replace(/ö/g, 'o')
+                .replace(/ç/g, 'c')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Aksanları kaldır
+            
+            console.log('Product Subcategory:', product.subcategory);
+            console.log('Normalized Subcategory:', normalizedSubcategory);
+            
+            if (subcategoryCounts[normalizedSubcategory] !== undefined) {
+                subcategoryCounts[normalizedSubcategory]++;
+            }
         }
     });
     
@@ -173,8 +156,8 @@ function updateSubcategoryCounts(products) {
         const subcategory = link.getAttribute('data-category');
         const countElement = link.querySelector('.subcategory-count');
         
-        if (countElement && subcategoryCounts[subcategory] !== undefined) {
-            countElement.textContent = subcategoryCounts[subcategory];
+        if (countElement) {
+            countElement.textContent = subcategoryCounts[subcategory] || 0;
         }
     });
 }
@@ -226,4 +209,202 @@ function activateCurrentCategoryLink() {
             console.log("Aksesuar sayfası aktif");
         }
     });
-} 
+}
+
+// Ürünleri görüntüle
+function displayProducts(products) {
+    const productsContainer = document.getElementById('products-container');
+    if (!productsContainer) return;
+
+    if (products.length === 0) {
+        productsContainer.innerHTML = `
+            <div class="no-products">
+                <i class="fas fa-box-open"></i>
+                <p>Bu kategoride ürün bulunamadı</p>
+            </div>
+        `;
+        return;
+    }
+
+    productsContainer.innerHTML = products.map(product => `
+        <div class="product-card">
+            <a href="/views/product.html?id=${product._id}" class="product-link">
+                <div class="product-img-container">
+                    <img src="${product.image}" alt="${product.name}"
+                         onerror="this.onerror=null; this.src='../img/product-placeholder.jpg';">
+                    ${product.stock <= 3 && product.stock > 0 ? '<span class="product-badge limited-stock">Sınırlı Stok</span>' : ''}
+                    ${product.stock === 0 ? '<span class="product-badge out-of-stock-badge">Tükendi</span>' : ''}
+                    ${product.featured ? '<span class="product-badge featured-badge">Öne Çıkan</span>' : ''}
+                </div>
+                <div class="product-card-content">
+                    <div class="product-brand">${product.brand || 'SmartWear'}</div>
+                    <h3 class="product-title">${product.name}</h3>
+                    <div class="product-details">
+                        ${product.color ? `<div class="product-color">Renk: ${product.color}</div>` : ''}
+                        ${product.size ? `<div class="product-size">Beden: ${product.size}</div>` : ''}
+                    </div>
+                    <div class="product-price-container">
+                        <p class="price">${product.price.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</p>
+                        <p class="stock ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">
+                            ${product.stock > 0 ? `${product.stock} adet stokta` : 'Stokta Yok'}
+                        </p>
+                    </div>
+                </div>
+            </a>
+            <div class="product-actions">
+                <button class="sepete-ekle-btn" onclick="addToCartFromListing('${product._id}', '${product.name}', ${product.price}, '${product.image}')" ${product.stock === 0 ? 'disabled' : ''}>
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Sepete Ekle</span>
+                </button>
+                <button class="favorite-btn" onclick="toggleFavorite('${product._id}')">
+                    <i class="far fa-heart"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+
+    // Favorileri kontrol edip işaretle
+    if (typeof checkFavorites === 'function') {
+        checkFavorites();
+    }
+}
+
+// Sayfa yüklendiğinde çalışacak fonksiyonlar
+document.addEventListener('DOMContentLoaded', async () => {
+    setupCategoryFilters();
+    activateCurrentCategoryLink();
+    
+    // Önce tüm ürünleri getir ve sayıları güncelle
+    await loadAllProductsAndUpdateCounts();
+    
+    // URL'den alt kategori parametresini kontrol et
+    const urlParams = new URLSearchParams(window.location.search);
+    const subcategory = urlParams.get('subcategory');
+    
+    if (subcategory) {
+        const subcategoryLink = document.querySelector(`.subcategory-link[data-category="${subcategory}"]`);
+        if (subcategoryLink) {
+            subcategoryLink.click();
+        }
+    } else {
+        // Alt kategori seçili değilse "Tümü" kategorisini seç
+        const allCategoryLink = document.querySelector('.subcategory-link[data-category="Tümü"]');
+        if (allCategoryLink) {
+            allCategoryLink.click();
+        }
+    }
+});
+
+// Alt kategoriye göre ürün filtreleme
+async function filterProductsBySubcategory(subcategory) {
+    showLoading();
+    
+    try {
+        // Ana kategoriyi belirle (sayfa adından)
+        const currentPath = window.location.pathname;
+        let mainCategory = '';
+        
+        if (currentPath.includes('clothing.html')) {
+            mainCategory = 'Giyim';
+        } else if (currentPath.includes('shoes.html')) {
+            mainCategory = 'Ayakkabı';
+        } else if (currentPath.includes('accessories.html')) {
+            mainCategory = 'Aksesuar';
+        }
+        
+        let products;
+        
+        // Eğer "Tümü" seçildiyse tüm kategori ürünlerini göster
+        if (subcategory === "Tümü") {
+            const response = await fetch(`/api/products/category/${mainCategory}`);
+            
+            if (!response.ok) {
+                throw new Error('Ürünler yüklenirken hata oluştu');
+            }
+            
+            products = await response.json();
+        } else {
+            // Alt kategoriye göre API çağrısı yap
+            const response = await fetch(`/api/products/category/${mainCategory}`);
+            
+            if (!response.ok) {
+                throw new Error('Ürünler yüklenirken hata oluştu');
+            }
+            
+            products = await response.json();
+            
+            // Gelen ürünleri subcategory özelliğine göre filtrele
+            products = products.filter(product => {
+                if (!product.subcategory) return false;
+                
+                // Ürünün subcategory'sini normalize et
+                const normalizedProductSubcategory = product.subcategory.toLowerCase()
+                    .replace(/\s+/g, '-') // Tüm boşlukları tire ile değiştir
+                    .replace(/&/g, '-') // & işaretini tire ile değiştir
+                    .replace(/ğ/g, 'g')
+                    .replace(/ü/g, 'u')
+                    .replace(/ş/g, 's')
+                    .replace(/ı/g, 'i')
+                    .replace(/ö/g, 'o')
+                    .replace(/ç/g, 'c')
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Aksanları kaldır
+                
+                console.log('Normalized Product Subcategory:', normalizedProductSubcategory);
+                console.log('Selected Subcategory:', subcategory);
+                
+                return normalizedProductSubcategory === subcategory;
+            });
+        }
+        
+        // Filtrelenmiş ürünleri göster
+        displayProducts(products);
+        
+        // Ürün sayısını güncelle
+        updateProductCount(products.length);
+        
+        // URL'yi güncelle
+        const url = new URL(window.location.href);
+        if (subcategory === "Tümü") {
+            url.searchParams.delete('subcategory');
+        } else {
+            url.searchParams.set('subcategory', subcategory);
+        }
+        window.history.pushState({}, '', url);
+        
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+// Ürün sayısını güncelle
+function updateProductCount(count) {
+    const resultsCountElement = document.querySelector('.results-count span');
+    if (resultsCountElement) {
+        resultsCountElement.textContent = `${count} ürün bulundu`;
+    }
+}
+
+// Sayfa yüklendiğinde çalışacak fonksiyonlar
+document.addEventListener('DOMContentLoaded', () => {
+    setupCategoryFilters();
+    activateCurrentCategoryLink();
+    
+    // URL'den alt kategori parametresini kontrol et
+    const urlParams = new URLSearchParams(window.location.search);
+    const subcategory = urlParams.get('subcategory');
+    
+    if (subcategory) {
+        const subcategoryLink = document.querySelector(`.subcategory-link[data-category="${subcategory}"]`);
+        if (subcategoryLink) {
+            subcategoryLink.click();
+        }
+    } else {
+        // Alt kategori seçili değilse "Tümü" kategorisini seç
+        const allCategoryLink = document.querySelector('.subcategory-link[data-category="Tümü"]');
+        if (allCategoryLink) {
+            allCategoryLink.click();
+        }
+    }
+}); 
