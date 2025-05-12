@@ -8,6 +8,43 @@
     <link rel="stylesheet" href="../css/components/navbar.css">
     <link rel="stylesheet" href="../css/cart.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Global sepet yönetimi -->
+    <script src="/js/global-cart.js" defer></script>
+    <style>
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transition: opacity 0.3s;
+        }
+        
+        .notification.error {
+            background-color: #e74c3c;
+        }
+        
+        .notification.fade-out {
+            opacity: 0;
+        }
+        
+        .empty-cart {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+        }
+        
+        .empty-cart i {
+            font-size: 48px;
+            color: #ddd;
+            margin-bottom: 15px;
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <!-- Navbar will be loaded here -->
@@ -75,11 +112,28 @@
             });
     </script>
     <script src="../js/cart.js"></script>
+    <script src="../js/fix-cart.js"></script>
     <script src="../js/auth.js"></script>
     <script>
         // Ödeme düğmesine tıklanınca
         document.getElementById('checkout-btn').addEventListener('click', function() {
             alert('Ödeme işlemi şu anda geliştirme aşamasındadır.');
+        });
+        
+        // Sayfa yüklendiğinde sepetteki hatalı ürünleri düzelt
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sepeti güncelle ve hataları gider
+            try {
+                // Cart.js içindeki fonksiyonları kullan
+                if (typeof loadCart === 'function') {
+                    loadCart();
+                }
+                if (typeof displayCartItems === 'function') {
+                    displayCartItems();
+                }
+            } catch (error) {
+                console.error('Sepet yüklenirken hata oluştu:', error);
+            }
         });
     </script>
 </body>

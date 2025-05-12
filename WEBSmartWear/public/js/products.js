@@ -79,45 +79,75 @@ function displayProducts(products) {
         return;
     }
     
-    productsContainer.innerHTML = products.map(product => `
-        <div class="product-card">
-            <a href="/views/product.html?id=${product._id}" class="product-link">
-                <div class="product-img-container">
-                    <img src="${product.image}" alt="${product.name}" 
-                         onerror="this.onerror=null; this.src='../img/product-placeholder.jpg';">
-                    ${product.stock <= 3 && product.stock > 0 ? `<span class="product-badge limited-stock">Sınırlı Stok</span>` : ''}
-                    ${product.stock === 0 ? `<span class="product-badge out-of-stock-badge">Tükendi</span>` : ''}
-                    ${product.featured ? `<span class="product-badge featured-badge">Öne Çıkan</span>` : ''}
+    productsContainer.innerHTML = products.map(product => {
+        // Ürün verilerini garantiye alalım
+        const safeProduct = {
+            _id: product._id || '',
+            name: product.name || 'İsimsiz Ürün',
+            price: typeof product.price === 'number' ? product.price : 0,
+            image: product.image || '../img/product-placeholder.jpg',
+            brand: product.brand || 'SmartWear',
+            stock: typeof product.stock === 'number' ? product.stock : 0,
+            color: product.color || '',
+            size: product.size || '',
+            featured: !!product.featured
+        };
+        
+        return `
+        <div class="product-card clickable" onclick="navigateToProductDetail('${safeProduct._id}')">
+            <div class="product-img-container">
+                <img src="${safeProduct.image}" alt="${safeProduct.name}" 
+                     onerror="this.onerror=null; this.src='../img/product-placeholder.jpg';">
+                ${safeProduct.stock <= 3 && safeProduct.stock > 0 ? `<span class="product-badge limited-stock">Sınırlı Stok</span>` : ''}
+                ${safeProduct.stock === 0 ? `<span class="product-badge out-of-stock-badge">Tükendi</span>` : ''}
+                ${safeProduct.featured ? `<span class="product-badge featured-badge">Öne Çıkan</span>` : ''}
+            </div>
+            <div class="product-card-content">
+                <div class="product-brand">${safeProduct.brand}</div>
+                <h3 class="product-title">${safeProduct.name}</h3>
+                <div class="product-details">
+                    ${safeProduct.color ? `<div class="product-color">Renk: ${safeProduct.color}</div>` : ''}
+                    ${safeProduct.size ? `<div class="product-size">Beden: ${safeProduct.size}</div>` : ''}
                 </div>
-                <div class="product-card-content">
-                    <div class="product-brand">${product.brand || 'SmartWear'}</div>
-                    <h3 class="product-title">${product.name}</h3>
-                    <div class="product-details">
-                        ${product.color ? `<div class="product-color">Renk: ${product.color}</div>` : ''}
-                        ${product.size ? `<div class="product-size">Beden: ${product.size}</div>` : ''}
-                    </div>
-                    <div class="product-price-container">
-                        <p class="price">${product.price.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</p>
-                        <p class="stock ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">
-                            ${product.stock > 0 ? `${product.stock} adet stokta` : 'Stokta Yok'}
-                        </p>
-                    </div>
+                <div class="product-price-container">
+                    <p class="price">${safeProduct.price.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</p>
+                    <p class="stock ${safeProduct.stock > 0 ? 'in-stock' : 'out-of-stock'}">
+                        ${safeProduct.stock > 0 ? `${safeProduct.stock} adet stokta` : 'Stokta Yok'}
+                    </p>
                 </div>
-            </a>
-            <div class="product-actions">
-                <button class="sepete-ekle-btn" onclick="addToCartFromListing('${product._id}', '${product.name}', ${product.price}, '${product.image}')" ${product.stock === 0 ? 'disabled' : ''}>
+            </div>
+            <div class="product-actions" onclick="event.stopPropagation()">
+                <button class="sepete-ekle-btn" onclick="addToCartFromListing('${safeProduct._id}', '${safeProduct.name.replace(/'/g, "\\'")}', ${safeProduct.price}, '${safeProduct.image}', event)" ${safeProduct.stock === 0 ? 'disabled' : ''}>
                     <i class="fas fa-shopping-cart"></i>
                     <span>Sepete Ekle</span>
                 </button>
-                <button class="favorite-btn" onclick="toggleFavorite('${product._id}')">
+                <button class="favorite-btn" onclick="toggleFavorite('${safeProduct._id}', event)">
                     <i class="far fa-heart"></i>
                 </button>
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
     
     // Favorileri kontrol edip işaretle
     checkFavorites();
+
+    // Product card hover efektini belirginleştir
+    addHoverEffectToCards();
+}
+
+// Ürün detay sayfasına yönlendirme fonksiyonu
+function navigateToProductDetail(productId) {
+    window.location.href = `/views/product.html?id=${productId}`;
+}
+
+// Ürün kartlarına hover efekti ekle
+function addHoverEffectToCards() {
+    const productCards = document.querySelectorAll('.product-card.clickable');
+    productCards.forEach(card => {
+        card.style.cursor = 'pointer';
+        card.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+    });
 }
 
 // Kategorilerin görünen adlarını döndürür
@@ -151,23 +181,53 @@ function showError(message) {
 }
 
 // Add to cart from product listing
-function addToCartFromListing(productId, name, price, image) {
-    // Yeni sepet fonksiyonunu çağır (cart.js'teki fonksiyon)
+function addToCartFromListing(productId, name, price, image, event) {
+    // Olay yayılımını durdur
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    // Gerekli parametreleri kontrol et
+    if (!productId || !name || isNaN(Number(price))) {
+        console.error('Sepete eklenemedi: Eksik veya geçersiz ürün bilgisi', { productId, name, price });
+        showNotification('Ürün eklenirken bir hata oluştu', 'error');
+        return;
+    }
+    
+    // Değerleri güvenli hale getir
+    const safeId = String(productId);
+    const safeName = String(name);
+    const safePrice = Number(price);
+    const safeImage = image || '../img/product-placeholder.jpg';
+    
+    // Tüm değerleri güvenli şekilde aktar
     if (typeof addToCart === 'function') {
-        addToCart(productId, name, price, image, 1);
+        addToCart(safeId, safeName, safePrice, safeImage, 1);
     } else {
         // Fallback eski koda
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        cart.push(productId);
-        localStorage.setItem('cart', JSON.stringify(cart));
-        
-        // Update cart count
-        if (typeof updateCartCount === 'function') {
-            updateCartCount();
+        try {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            
+            // Nesne olarak ekle
+            cart.push({
+                productId: safeId,
+                name: safeName,
+                price: safePrice,
+                image: safeImage,
+                quantity: 1
+            });
+            
+            localStorage.setItem('cart', JSON.stringify(cart));
+            
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
+            
+            showNotification('Ürün sepete eklendi!');
+        } catch (error) {
+            console.error('Sepete ekleme hatası:', error);
+            showNotification('Ürün eklenirken bir hata oluştu');
         }
-        
-        // Show notification
-        showNotification('Ürün sepete eklendi!');
     }
 }
 
@@ -181,38 +241,93 @@ function saveFavorites(favorites) {
     localStorage.setItem('favorites', JSON.stringify(favorites));
 }
 
-// Favorilere ekleme/çıkarma işlemi
-async function toggleFavorite(productId) {
+// Favorilere ekleme/çıkarma işlemi - Geliştirilmiş Versiyon
+async function toggleFavorite(productId, event) {
+    // Olay yayılımını durdur
+    if (event) {
+        event.stopPropagation();
+    }
+    
     const favorites = getFavorites();
     const index = favorites.indexOf(productId);
+    
+    let button;
+    if (event && event.target) {
+        button = event.target.closest('.favorite-btn');
+    }
     
     if (index === -1) {
         // Favorilere ekle
         favorites.push(productId);
-        showNotification('Ürün favorilere eklendi');
+        
+        // GUI güncelleme
+        if (button) {
+            button.innerHTML = '<i class="fas fa-heart"></i>';
+            button.classList.add('active');
+            button.setAttribute('title', 'Favorilerden Çıkar');
+        }
+        
+        // Bildirim göster
+        if (typeof showEnhancedNotification === 'function') {
+            showEnhancedNotification('Ürün favorilere eklendi', 'success');
+        } else {
+            showNotification('Ürün favorilere eklendi', 'success');
+        }
     } else {
         // Favorilerden çıkar
         favorites.splice(index, 1);
-        showNotification('Ürün favorilerden çıkarıldı');
+        
+        // GUI güncelleme
+        if (button) {
+            button.innerHTML = '<i class="far fa-heart"></i>';
+            button.classList.remove('active');
+            button.setAttribute('title', 'Favorilere Ekle');
+        }
+        
+        // Bildirim göster
+        if (typeof showEnhancedNotification === 'function') {
+            showEnhancedNotification('Ürün favorilerden çıkarıldı', 'info');
+        } else {
+            showNotification('Ürün favorilerden çıkarıldı', 'info');
+        }
     }
     
     saveFavorites(favorites);
     
-    // Favorilere ekleme/çıkarma butonunun görünümünü güncelle
-    const button = event.target.closest('.favorite-btn');
-    button.classList.toggle('active');
-    
-    // Sayfa yenilenmeden ürün kartlarını güncelle
+    // Ürün kartlarını güncelle
     updateProductCards();
+    
+    // Uygulamanın diğer bölümlerini de güncelle
+    if (typeof checkFavorites === 'function') {
+        checkFavorites();
+    }
 }
 
-// Bildirim gösterme fonksiyonu
-function showNotification(message) {
+// Bildirim gösterme fonksiyonu - Geliştirilmiş Versiyon
+function showNotification(message, type = 'success') {
+    // showEnhancedNotification fonksiyonu varsa onu kullan
+    if (typeof showEnhancedNotification === 'function') {
+        return showEnhancedNotification(message, type);
+    }
+    
     const notification = document.createElement('div');
-    notification.className = 'notification';
+    notification.className = `notification ${type}`;
     notification.textContent = message;
     
-    document.body.appendChild(notification);
+    // Bildirim konteynerı mevcut değilse oluştur
+    let notificationContainer = document.getElementById('notification-container');
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.id = 'notification-container';
+        notificationContainer.style.position = 'fixed';
+        notificationContainer.style.top = '20px';
+        notificationContainer.style.right = '20px';
+        notificationContainer.style.zIndex = '9999';
+        document.body.appendChild(notificationContainer);
+    }
+    
+    // Bildirimi ekle
+    notificationContainer.appendChild(notification);
     
     // 3 saniye sonra bildirimi kaldır
     setTimeout(() => {
@@ -223,17 +338,40 @@ function showNotification(message) {
     }, 2700);
 }
 
-// Ürün kartlarını güncelleme fonksiyonu
+// Ürün kartlarını güncelleme fonksiyonu - Geliştirilmiş Versiyon
 function updateProductCards() {
     const favorites = getFavorites();
     const favoriteButtons = document.querySelectorAll('.favorite-btn');
     
     favoriteButtons.forEach(button => {
-        const productId = button.getAttribute('onclick').match(/'([^']+)'/)[1];
-        if (favorites.includes(productId)) {
-            button.classList.add('active');
+        // Daha güvenli bir şekilde productId çıkarma
+        let productId;
+        
+        // dataset'ten ürün ID'sini al
+        if (button.dataset.productId) {
+            productId = button.dataset.productId;
         } else {
+            // onclick'ten parse et
+            const onclickAttr = button.getAttribute('onclick');
+            if (onclickAttr) {
+                const match = onclickAttr.match(/['"]([\w\d]+)['"]/);
+                if (match && match[1]) {
+                    productId = match[1];
+                }
+            }
+        }
+        
+        // Eğer ürün ID'si bulunduysa, favori durumunu güncelle
+        if (productId) {
+            if (favorites.includes(productId)) {
+                button.innerHTML = '<i class="fas fa-heart"></i>';
+                button.classList.add('active');
+                button.setAttribute('title', 'Favorilerden Çıkar');
+            } else {
+                button.innerHTML = '<i class="far fa-heart"></i>';
             button.classList.remove('active');
+                button.setAttribute('title', 'Favorilere Ekle');
+            }
         }
     });
 }

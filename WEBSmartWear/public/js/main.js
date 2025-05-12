@@ -178,7 +178,27 @@ function addToCart(productId) {
 function updateCartCount() {
     const cartCount = document.querySelector('.cart-count');
     if (cartCount) {
-        cartCount.textContent = cart.length;
+        // Sepetteki toplam ürün sayısını hesapla (miktarları da dikkate alarak)
+        let totalItems = 0;
+        cart.forEach(item => {
+            if (item && typeof item === 'object' && item.quantity) {
+                // Nesne olarak saklanan sepet öğeleri (quantity değeri var)
+                totalItems += item.quantity;
+            } else {
+                // Eski format desteği (sadece ID'ler varsa)
+                totalItems += 1;
+            }
+        });
+        
+        cartCount.textContent = totalItems;
+        // Badge'ı her zaman görünür yap
+        cartCount.classList.remove('hidden');
+        
+        // Parent badge elementini de görünür yap
+        const parentBadge = cartCount.closest('.badge');
+        if (parentBadge) {
+            parentBadge.classList.remove('hidden');
+        }
     }
 }
 
@@ -238,7 +258,7 @@ newsletterForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Add to favorites
+// Add to favorites - Modern versiyon
 function addToFavorites(productId) {
     let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
     
@@ -246,10 +266,10 @@ function addToFavorites(productId) {
     const index = favorites.indexOf(productId);
     if (index === -1) {
         favorites.push(productId);
-        showNotification('Ürün favorilere eklendi!');
+        showEnhancedNotification('Ürün favorilere eklendi!', 'success');
     } else {
         favorites.splice(index, 1);
-        showNotification('Ürün favorilerden çıkarıldı!');
+        showEnhancedNotification('Ürün favorilerden çıkarıldı!', 'info');
     }
     
     localStorage.setItem('favorites', JSON.stringify(favorites));
@@ -264,7 +284,23 @@ function checkFavorites() {
     const favoriteButtons = document.querySelectorAll('.favorite-btn');
     
     favoriteButtons.forEach(button => {
-        const productId = button.getAttribute('onclick').split("'")[1];
+        // Daha güvenli bir şekilde productId çıkarma
+        let productId;
+        const onclickAttr = button.getAttribute('onclick');
+        
+        if (onclickAttr && onclickAttr.includes("addToFavorites")) {
+            // onclick attribute'unu daha güvenli bir şekilde ayrıştır
+            const match = onclickAttr.match(/addToFavorites\(['"]([^'"]+)['"]\)/);
+            if (match && match[1]) {
+                productId = match[1];
+            }
+        } else if (button.dataset.productId) {
+            // Eğer data-product-id özelliği varsa onu kullan
+            productId = button.dataset.productId;
+        }
+        
+        // Sadece geçerli bir productId bulunduğunda işlem yap
+        if (productId) {
         if (favorites.includes(productId)) {
             button.innerHTML = '<i class="fas fa-heart"></i>';
             button.classList.add('active');
@@ -273,8 +309,75 @@ function checkFavorites() {
             button.innerHTML = '<i class="far fa-heart"></i>';
             button.classList.remove('active');
             button.title = 'Favorilere Ekle';
+            }
         }
     });
+}
+
+// Gelişmiş bildirim fonksiyonu
+function showEnhancedNotification(message, type = 'success') {
+    // Bildirim konteynerını kontrol et veya oluştur
+    let notificationContainer = document.getElementById('notification-container');
+    
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.id = 'notification-container';
+        notificationContainer.style.position = 'fixed';
+        notificationContainer.style.top = '20px';
+        notificationContainer.style.right = '20px';
+        notificationContainer.style.zIndex = '9999';
+        document.body.appendChild(notificationContainer);
+    }
+    
+    // Yeni bildirim oluştur
+    const notification = document.createElement('div');
+    notification.className = 'notification ' + type;
+    
+    // Bildirim stili
+    Object.assign(notification.style, {
+        backgroundColor: type === 'success' ? '#4caf50' : 
+                         type === 'error' ? '#f44336' : 
+                         type === 'info' ? '#2196F3' : '#ff9800',
+        color: 'white',
+        padding: '12px 20px',
+        marginBottom: '10px',
+        borderRadius: '4px',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+        transition: 'all 0.3s ease',
+        opacity: '0',
+        transform: 'translateX(100%)'
+    });
+    
+    // İkon seç
+    let icon = '';
+    if (type === 'success') icon = '<i class="fas fa-check-circle"></i> ';
+    else if (type === 'error') icon = '<i class="fas fa-exclamation-circle"></i> ';
+    else if (type === 'info') icon = '<i class="fas fa-info-circle"></i> ';
+    else icon = '<i class="fas fa-bell"></i> ';
+    
+    notification.innerHTML = icon + message;
+    
+    // Bildirim containerına ekle
+    notificationContainer.appendChild(notification);
+    
+    // Bildirim animasyonu (görünür yap)
+    setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Belirli süre sonra bildirim kaybolur
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        
+        // Gerçekten kaldırmadan önce animasyonun bitmesini bekle
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+    
+    return notification;
 }
 
 // Global product function
@@ -425,3 +528,38 @@ function handleSearchInput() {
         window.searchClickHandlerAdded = true;
     }
 }
+
+// Tüm sayfalarda çalışacak genel sepet sayısı güncelleyicisi
+document.addEventListener('DOMContentLoaded', function() {
+    // Sepet sayısını güncelle 
+    setTimeout(function() {
+        // Sepet sayısını alıp badge'lere yaz (navbar.js ve cart.js'den sonra çalışsın)
+        const cartElements = document.querySelectorAll('.cart-count');
+        const cartData = JSON.parse(localStorage.getItem('cart')) || [];
+        
+        // Badge'leri görünür yap ve sayıyı yaz
+        cartElements.forEach(element => {
+            // Sepet sayısını belirle (nesne veya string olabilir)
+            let itemCount = 0;
+            if (Array.isArray(cartData)) {
+                itemCount = cartData.reduce((total, item) => {
+                    if (item && typeof item === 'object' && item.quantity) {
+                        return total + item.quantity;
+                    } else {
+                        return total + 1; // Eski format
+                    }
+                }, 0);
+            }
+            
+            // Sayıyı güncelle
+            element.textContent = itemCount;
+            
+            // Badge elementini ve parent badge'ı görünür yap
+            element.classList.remove('hidden');
+            const parentBadge = element.closest('.badge');
+            if (parentBadge) {
+                parentBadge.classList.remove('hidden');
+            }
+        });
+    }, 500); // Diğer scriptlerden sonra çalışması için bir miktar beklet
+});

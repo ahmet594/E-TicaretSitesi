@@ -17,6 +17,40 @@
     box-shadow: 0 10px 20px rgba(0,0,0,0.15);
 }
 
+/* Tıklanabilir kartlar için özel stil */
+.product-card.clickable {
+    cursor: pointer;
+    position: relative;
+}
+
+.product-card.clickable:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 25px rgba(0,0,0,0.18);
+}
+
+.product-card.clickable:active {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+}
+
+.product-card.clickable::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0);
+    transition: background 0.2s ease;
+    pointer-events: none;
+    border-radius: 10px;
+    z-index: 1;
+}
+
+.product-card.clickable:hover::after {
+    background: rgba(255, 255, 255, 0.05);
+}
+
 .product-card .product-link {
     display: block;
     text-decoration: none;

@@ -78,6 +78,7 @@ async function handleLogin(e) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('userId', data.user.id);
         localStorage.setItem('userName', data.user.name);
+        localStorage.setItem('userRole', data.user.role);
         
         // Redirect to homepage or the page that required login
         window.location.href = getRedirectUrl();
@@ -120,6 +121,7 @@ async function handleRegister(e) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('userId', data.user.id);
         localStorage.setItem('userName', data.user.name);
+        localStorage.setItem('userRole', data.user.role);
         
         // Redirect to homepage or the page that required login
         window.location.href = getRedirectUrl();
@@ -133,6 +135,7 @@ function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
     localStorage.removeItem('userName');
+    localStorage.removeItem('userRole');
     window.location.href = '/';
 }
 

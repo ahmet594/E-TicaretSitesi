@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="../css/components/product-card.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <!-- Global bağımlılıklar (sepet sayısı yönetimi için) -->
+    <script src="../js/dependencies.js"></script>
     <style>
         /* Navbar altında boşluk bırakmak için */
         main.container {
@@ -599,79 +601,6 @@
                             <button id="apply-price-filter" class="filter-btn">Fiyatı Uygula</button>
                         </div>
                     </div>
-                    
-                    <!-- Beden -->
-                    <div class="category-group">
-                        <h4 class="category-title">
-                            Beden
-                            <i class="fas fa-chevron-down icon"></i>
-                        </h4>
-                        <div class="filter-options">
-                            <div class="filter-option">
-                                <input type="checkbox" id="size-xs" class="size-filter" data-size="XS">
-                                <label for="size-xs">XS</label>
-                            </div>
-                            <div class="filter-option">
-                                <input type="checkbox" id="size-s" class="size-filter" data-size="S">
-                                <label for="size-s">S</label>
-                            </div>
-                            <div class="filter-option">
-                                <input type="checkbox" id="size-m" class="size-filter" data-size="M">
-                                <label for="size-m">M</label>
-                            </div>
-                            <div class="filter-option">
-                                <input type="checkbox" id="size-l" class="size-filter" data-size="L">
-                                <label for="size-l">L</label>
-                            </div>
-                            <div class="filter-option">
-                                <input type="checkbox" id="size-xl" class="size-filter" data-size="XL">
-                                <label for="size-xl">XL</label>
-                            </div>
-                            <div class="filter-option">
-                                <input type="checkbox" id="size-xxl" class="size-filter" data-size="XXL">
-                                <label for="size-xxl">XXL</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Renk -->
-                    <div class="category-group">
-                        <h4 class="category-title">
-                            Renk
-                            <i class="fas fa-chevron-down icon"></i>
-                        </h4>
-                        <div class="color-options">
-                            <div class="color-option">
-                                <input type="checkbox" id="color-black" class="color-filter" data-color="Siyah">
-                                <label for="color-black" class="color-black" title="Siyah"></label>
-                            </div>
-                            <div class="color-option">
-                                <input type="checkbox" id="color-white" class="color-filter" data-color="Beyaz">
-                                <label for="color-white" class="color-white" title="Beyaz"></label>
-                            </div>
-                            <div class="color-option">
-                                <input type="checkbox" id="color-blue" class="color-filter" data-color="Mavi">
-                                <label for="color-blue" class="color-blue" title="Mavi"></label>
-                            </div>
-                            <div class="color-option">
-                                <input type="checkbox" id="color-red" class="color-filter" data-color="Kırmızı">
-                                <label for="color-red" class="color-red" title="Kırmızı"></label>
-                            </div>
-                            <div class="color-option">
-                                <input type="checkbox" id="color-gray" class="color-filter" data-color="Gri">
-                                <label for="color-gray" class="color-gray" title="Gri"></label>
-                            </div>
-                            <div class="color-option">
-                                <input type="checkbox" id="color-green" class="color-filter" data-color="Yeşil">
-                                <label for="color-green" class="color-green" title="Yeşil"></label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Filter Actions -->
-                    <button id="reset-filters" class="filter-reset">
-                        <i class="fas fa-times-circle mr-2"></i> Filtreleri Temizle
-                    </button>
                 </div>
             </aside>
             
@@ -725,16 +654,27 @@
     <script src="../js/components/navbar.js"></script>
     <script src="../js/products.js"></script>
     <script src="../js/category-filters.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
         // Load navbar and footer components
         document.addEventListener('DOMContentLoaded', () => {
+            // Ana sayfa script bölümünden ilham alarak, auth kontrolünü daha erken yapacağız
             fetch('../components/navbar.html')
                 .then(response => response.text())
                 .then(data => {
                     document.getElementById('navbar-container').innerHTML = data;
-                    // Activate category link after navbar is loaded
+                    
+                    // Navbar yüklenir yüklenmez hemen auth kontrolünü yap
+                    // Timeout kullanmak yerine direkt çağıralım
+                    if (typeof updateAuthUI === 'function') {
+                        updateAuthUI();
+                    } else if (typeof updateNavbarAuthUI === 'function') {
+                        updateNavbarAuthUI();
+                    }
+                    
+                    // Kategori linkleri aktivasyonu
                     if (typeof activateCurrentCategoryLink === 'function') {
-                        setTimeout(activateCurrentCategoryLink, 100);
+                        activateCurrentCategoryLink();
                     }
                 });
                 

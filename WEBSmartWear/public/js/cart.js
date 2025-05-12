@@ -16,27 +16,103 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadCart() {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
-        cart = JSON.parse(savedCart);
+        try {
+            const parsedCart = JSON.parse(savedCart);
+            
+            // Hatalı verileri temizle
+            cart = parsedCart.filter(item => {
+                // Gerekli alanların varlığını kontrol et
+                const isValid = item && 
+                               typeof item === 'object' && 
+                               item.productId && 
+                               item.name && 
+                               !isNaN(Number(item.price)) &&
+                               item.quantity > 0;
+                
+                return isValid;
+            });
+            
+            // Eğer temizleme işlemi sonucunda kart değiştiyse kaydet
+            if (cart.length !== parsedCart.length) {
+                saveCart();
+            }
+        } catch (error) {
+            console.error('Sepet yüklenirken hata oluştu:', error);
+            cart = [];
+            localStorage.removeItem('cart');
+        }
     }
 }
 
 // Sepeti localStorage'a kaydet
 function saveCart() {
     localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // Debug için
+    console.log('Sepet kaydedildi:', cart);
+    console.log('Toplam ürün sayısı:', cart.reduce((total, item) => {
+        return total + (item.quantity || 1);
+    }, 0));
 }
 
 // Sepet UI'ını güncelle (navbar'daki sepet sayısı)
 function updateCartUI() {
     const cartCountElements = document.querySelectorAll('.cart-count');
-    const itemCount = cart.reduce((total, item) => total + item.quantity, 0);
+    if (!cartCountElements || cartCountElements.length === 0) return;
     
-    cartCountElements.forEach(element => {
-        element.textContent = itemCount;
-    });
+    try {
+        // Sepetteki toplam ürün sayısını hesapla
+        const itemCount = cart.reduce((total, item) => {
+            // Quantity kontrolü (NaN veya negatif değerler için koruma)
+            if (item && typeof item.quantity === 'number' && !isNaN(item.quantity) && item.quantity > 0) {
+                return total + item.quantity;
+            } else if (item) {
+                return total + 1; // Eğer miktar bilgisi yoksa, 1 kabul et
+            }
+            return total;
+        }, 0);
+        
+        console.log('Cart güncellendi, toplam ürün sayısı:', itemCount);
+        
+        // Tüm sepet sayı gösterimlerini güncelle
+        cartCountElements.forEach(element => {
+            if (element) {
+                // Her zaman sayıyı göster (0 bile olsa)
+                element.textContent = itemCount;
+                
+                // Badge'ı görünür yap (0 bile olsa)
+                element.classList.remove('hidden');
+                
+                // Badge elementini sayfada görünür kıl
+                const parentBadge = element.closest('.badge');
+                if (parentBadge) {
+                    parentBadge.classList.remove('hidden');
+                }
+            }
+        });
+        
+        // localStorage'a güncel sepet içeriğini kaydet
+        localStorage.setItem('cart', JSON.stringify(cart));
+    } catch (error) {
+        console.error('Sepet UI güncellenirken hata oluştu:', error);
+    }
+    
+    // Ana sayfadaki sepet simgesini de güncelle (navbar global değişken)
+    if (window.updateCartCount && typeof window.updateCartCount === 'function') {
+        window.updateCartCount();
+    }
 }
 
 // Ürünü sepete ekle
 function addToCart(productId, name, price, image, quantity = 1) {
+    if (!productId || !name || isNaN(Number(price))) {
+        console.error('Sepete eklenemedi: Eksik veya geçersiz ürün bilgisi');
+        return;
+    }
+
+    // Fiyatı sayıya dönüştür
+    const numericPrice = Number(price);
+    
     // Eğer ürün zaten sepette varsa miktarını arttır
     const existingItemIndex = cart.findIndex(item => item.productId === productId);
     
@@ -47,8 +123,8 @@ function addToCart(productId, name, price, image, quantity = 1) {
         cart.push({
             productId,
             name,
-            price,
-            image,
+            price: numericPrice,
+            image: image || '../img/product-placeholder.jpg',
             quantity
         });
     }
@@ -110,19 +186,26 @@ function displayCartItems() {
     let totalPrice = 0;
     
     cart.forEach(item => {
-        const itemTotal = item.price * item.quantity;
+        // Değerleri güvenli bir şekilde alalım
+        const productId = item.productId || '';
+        const name = item.name || 'Ürün Adı Yok';
+        const safePrice = typeof item.price === 'number' && !isNaN(item.price) ? item.price : 0;
+        const imageUrl = item.image || '../img/product-placeholder.jpg';
+        const quantity = typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1;
+        
+        const itemTotal = safePrice * quantity;
         totalPrice += itemTotal;
         
         cartHTML += `
-            <div class="cart-item" data-id="${item.productId}">
-                <img src="${item.image}" alt="${item.name}" class="cart-item-img">
+            <div class="cart-item" data-id="${productId}">
+                <img src="${imageUrl}" alt="${name}" class="cart-item-img" onerror="this.src='../img/product-placeholder.jpg'">
                 <div class="cart-item-details">
-                    <h4>${item.name}</h4>
-                    <div class="cart-item-price">${item.price.toFixed(2)} TL</div>
+                    <h4>${name}</h4>
+                    <div class="cart-item-price">${safePrice.toFixed(2)} TL</div>
                 </div>
                 <div class="cart-item-quantity">
                     <button class="quantity-btn decrease">-</button>
-                    <input type="number" value="${item.quantity}" min="1" class="quantity-input">
+                    <input type="number" value="${quantity}" min="1" class="quantity-input">
                     <button class="quantity-btn increase">+</button>
                 </div>
                 <div class="cart-item-total">${itemTotal.toFixed(2)} TL</div>
@@ -221,3 +304,28 @@ function showNotification(message) {
         }, 500);
     }, 3000);
 }
+
+// Sepeti tamamen temizler
+function clearCart() {
+    cart = [];
+    saveCart();
+    updateCartUI();
+    if (window.location.pathname.includes('/views/cart.html')) {
+        displayCartItems();
+    }
+}
+
+window.addToCart = addToCart;
+window.removeFromCart = removeFromCart;
+window.updateQuantity = updateQuantity;
+window.displayCartItems = displayCartItems;
+window.clearCart = clearCart;
+
+// Sayfa tam olarak yüklendiğinde sepet sayısını güncelle
+window.onload = function() {
+    updateCartUI();
+    // Global updateCartCount fonksiyonunu da çağır (navbar.js'den)
+    if (window.updateCartCount && typeof window.updateCartCount === 'function') {
+        window.updateCartCount();
+    }
+};

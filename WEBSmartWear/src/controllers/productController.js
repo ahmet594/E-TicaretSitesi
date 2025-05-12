@@ -1,5 +1,7 @@
 const Product = require('../models/Product');
 const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
 
 // Geçerli alt kategori listesi
 const SubcategoryLookup = {
@@ -96,16 +98,93 @@ exports.getProductsBySubcategory = async (req, res) => {
     }
 };
 
+// Tek bir görsel yükleme
+exports.uploadProductImage = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'Lütfen bir görsel seçin' });
+        }
+
+        // Yüklenen dosyanın URL'sini oluştur
+        const imageUrl = `/images/products/${req.file.filename}`;
+        
+        res.status(200).json({ 
+            message: 'Görsel başarıyla yüklendi', 
+            imageUrl: imageUrl,
+            filename: req.file.filename
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Yeni ürün ekle
 exports.createProduct = async (req, res) => {
     try {
-        const newProduct = new Product(req.body);
+        // Gelen verileri kontrol et
+        console.log('createProduct fonksiyonu çağrıldı');
+        console.log('Gelen ürün verileri:', req.body);
+        console.log('Yüklenen görseller:', req.files);
+        
+        // Dosya yükleme kontrolü
+        if (!req.files || req.files.length === 0) {
+            console.error('Hiç görsel yüklenmedi!');
+        } else {
+            console.log('Yüklenen dosya sayısı:', req.files.length);
+            req.files.forEach((file, index) => {
+                console.log(`Dosya ${index + 1}:`, {
+                    filename: file.filename,
+                    originalname: file.originalname,
+                    path: file.path,
+                    size: file.size,
+                    mimetype: file.mimetype
+                });
+            });
+        }
+        
+        // Ürün verilerini al
+        const productData = { ...req.body };
+        
+        // Yüklenen görselleri kontrol et
+        if (req.files && req.files.length > 0) {
+            // İlk görseli ana görsel olarak kullan
+            productData.image = `/images/products/${req.files[0].filename}`;
+            console.log('Ürün görseli olarak ayarlandı:', productData.image);
+            
+            // Diğer görseller için ek işlemler yapılabilir
+            // Örneğin: productData.additionalImages = req.files.slice(1).map(file => `/images/products/${file.filename}`);
+        } else {
+            // Eğer görsel yüklenmemişse ve frontend'den image bilgisi geldiyse onu kullan
+            if (!productData.image) {
+                console.error('Ürün için görsel bulunamadı!');
+                return res.status(400).json({ message: 'Ürün için en az bir görsel gereklidir' });
+            }
+        }
+        
+        console.log('Veritabanına kaydedilecek ürün verileri:', productData);
+        
+        const newProduct = new Product(productData);
         const savedProduct = await newProduct.save();
+        console.log('Ürün başarıyla kaydedildi:', savedProduct._id);
+        
         res.status(201).json(savedProduct);
     } catch (error) {
+        console.error('Ürün ekleme hatası:', error);
+        
+        // Hata durumunda yüklenen görselleri temizle
+        if (req.files && req.files.length > 0) {
+            req.files.forEach(file => {
+                console.log('Hata nedeniyle dosya siliniyor:', file.path);
+                fs.unlink(file.path, (err) => {
+                    if (err) console.error('Görsel silinirken hata:', err);
+                });
+            });
+        }
+        
         // Validasyon hatası kontrolü
         if (error.name === 'ValidationError') {
             const validationErrors = Object.values(error.errors).map(err => err.message);
+            console.error('Validasyon hataları:', validationErrors);
             return res.status(400).json({ message: 'Validasyon hatası', errors: validationErrors });
         }
         res.status(500).json({ message: error.message });
@@ -115,9 +194,25 @@ exports.createProduct = async (req, res) => {
 // Ürün güncelle
 exports.updateProduct = async (req, res) => {
     try {
+        // Gelen verileri kontrol et
+        console.log('Güncelleme verileri:', req.body);
+        console.log('Yüklenen görseller:', req.files);
+        
+        // Ürün verilerini al
+        const productData = { ...req.body };
+        
+        // Yüklenen görselleri kontrol et
+        if (req.files && req.files.length > 0) {
+            // İlk görseli ana görsel olarak kullan
+            productData.image = `/images/products/${req.files[0].filename}`;
+            
+            // Diğer görseller için ek işlemler yapılabilir
+            // Örneğin: productData.additionalImages = req.files.slice(1).map(file => `/images/products/${file.filename}`);
+        }
+        
         const updatedProduct = await Product.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            productData,
             { new: true, runValidators: true }
         );
         
@@ -127,6 +222,15 @@ exports.updateProduct = async (req, res) => {
         
         res.json(updatedProduct);
     } catch (error) {
+        // Hata durumunda yüklenen görselleri temizle
+        if (req.files && req.files.length > 0) {
+            req.files.forEach(file => {
+                fs.unlink(file.path, (err) => {
+                    if (err) console.error('Görsel silinirken hata:', err);
+                });
+            });
+        }
+        
         // ID format hatası kontrolü
         if (error instanceof mongoose.Error.CastError) {
             return res.status(400).json({ message: 'Geçersiz ürün ID formatı' });
@@ -149,6 +253,14 @@ exports.deleteProduct = async (req, res) => {
         
         if (!deletedProduct) {
             return res.status(404).json({ message: 'Silinecek ürün bulunamadı' });
+        }
+        
+        // Ürün görselini sil
+        if (deletedProduct.image) {
+            const imagePath = path.join(__dirname, '../../public', deletedProduct.image);
+            if (fs.existsSync(imagePath)) {
+                fs.unlinkSync(imagePath);
+            }
         }
         
         res.json({ message: 'Ürün başarıyla silindi' });

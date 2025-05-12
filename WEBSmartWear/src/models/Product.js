@@ -11,7 +11,7 @@ const productSchema = new mongoose.Schema({
         required: true
     },
     price: {
-        type: Number,
+        type: 'Double', // MongoDB Double veri tipi
         required: true,
         min: 0
     },
@@ -41,18 +41,18 @@ const productSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    sizes: {
-        type: [String],
-        default: [],
+    size: {
+        type: String,
+        default: '',
         validate: {
-            validator: function(sizes) {
+            validator: function(size) {
                 // Giyim kategorisi için zorunlu
-                if (this.category === 'Giyim' && (!sizes || sizes.length === 0)) {
+                if (this.category === 'Giyim' && (!size || size === '')) {
                     return false;
                 }
                 return true;
             },
-            message: 'Giyim ürünleri için en az bir beden seçeneği gereklidir.'
+            message: 'Giyim ürünleri için beden bilgisi gereklidir.'
         }
     },
     brand: {
@@ -63,18 +63,21 @@ const productSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
+}, {
+    toJSON: { getters: true },
+    toObject: { getters: true }
 });
 
 // Virtuals
 productSchema.virtual('availableSizes').get(function() {
-    return this.sizes || [];
+    return this.size ? this.size.split(',') : [];
 });
 
 // Middleware
 productSchema.pre('save', function(next) {
     // Giyim kategorisi için varsayılan bedenler
-    if (this.category === 'Giyim' && (!this.sizes || this.sizes.length === 0)) {
-        this.sizes = ['XS', 'S', 'M', 'L', 'XL'];
+    if (this.category === 'Giyim' && (!this.size || this.size === '')) {
+        this.size = 'XS,S,M,L,XL';
     }
     next();
 });

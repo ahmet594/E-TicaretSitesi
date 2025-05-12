@@ -37,12 +37,12 @@
             <a href="/views/favorites.html" class="action-link favorite-link">
                 <i class="far fa-heart"></i>
                 <span class="action-text">Favoriler</span>
-                <span class="favorites-count badge hidden">0</span>
+                <span class="favorites-count badge">0</span>
             </a>
             <a href="/views/cart.html" class="action-link cart-link">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="action-text">Sepet</span>
-                <span class="cart-count badge hidden">0</span>
+                <span class="cart-count badge">0</span>
             </a>
             <div class="auth-links">
                 <a href="/views/login.html" class="action-link login-link">
@@ -93,12 +93,12 @@
             <a href="/views/favorites.html">
                 <i class="far fa-heart"></i>
                 <span>Favoriler</span>
-                <span class="favorites-count badge mobile-badge hidden">0</span>
+                <span class="favorites-count badge mobile-badge">0</span>
             </a>
             <a href="/views/cart.html">
                 <i class="fas fa-shopping-cart"></i>
                 <span>Sepet</span>
-                <span class="cart-count badge mobile-badge hidden">0</span>
+                <span class="cart-count badge mobile-badge">0</span>
             </a>
         </div>
     </div>
@@ -281,18 +281,24 @@ document.addEventListener('DOMContentLoaded', () => {
 // Sepet sayısını güncelle
 function updateCartCount() {
     const cartCountBadges = document.querySelectorAll('.cart-count');
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const cartData = JSON.parse(localStorage.getItem('cart')) || [];
     
-    if (cart.length > 0) {
-        cartCountBadges.forEach(badge => {
-            badge.textContent = cart.length;
-            badge.classList.remove('hidden');
-        });
-    } else {
-        cartCountBadges.forEach(badge => {
-            badge.classList.add('hidden');
-        });
-    }
+    // Sepetteki toplam ürün sayısını hesapla (miktarları da dikkate alarak)
+    let totalItems = 0;
+    cartData.forEach(item => {
+        if (item && typeof item === 'object' && item.quantity) {
+            // Nesne olarak saklanan sepet öğeleri (quantity değeri var)
+            totalItems += item.quantity;
+        } else {
+            // Eski format desteği (sadece ID'ler varsa)
+            totalItems += 1;
+        }
+    });
+    
+    // Sepet boş olsa bile badge'ı göster ve sayıyı yazdır
+    cartCountBadges.forEach(badge => {
+        badge.textContent = totalItems;
+    });
 }
 
 // Favori sayısını güncelle
@@ -300,16 +306,10 @@ function updateFavoritesCount() {
     const favoritesCountBadges = document.querySelectorAll('.favorites-count');
     const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
     
-    if (favorites.length > 0) {
-        favoritesCountBadges.forEach(badge => {
-            badge.textContent = favorites.length;
-            badge.classList.remove('hidden');
-        });
-    } else {
-        favoritesCountBadges.forEach(badge => {
-            badge.classList.add('hidden');
-        });
-    }
+    // Favoriler boş olsa bile badge'ı göster ve sayıyı yazdır
+    favoritesCountBadges.forEach(badge => {
+        badge.textContent = favorites.length;
+    });
 }
 </script>
 

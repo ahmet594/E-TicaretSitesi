@@ -50,16 +50,71 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCategoryNavLinks();
 });
 
+// Export updateCartCount function to global scope for other scripts to use
+window.updateCartCount = updateCartCount;
+
 // Update cart count
 function updateCartCount() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const cartCount = document.querySelector('.cart-count');
-    if (cartCount) {
+    try {
+        const cartCountElements = document.querySelectorAll('.cart-count');
+        let cart = [];
+        
+        try {
+            // localStorage'dan cart verilerini al ve doğru şekilde parse et
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+                const parsedCart = JSON.parse(savedCart);
+                // Geçerli bir dizi olduğundan emin ol
+                if (Array.isArray(parsedCart)) {
+                    cart = parsedCart;
+                }
+            }
+        } catch (error) {
+            console.error('Sepet verisi parse edilemedi:', error);
+        }
+        
+        // Toplam ürün sayısını hesapla
         let totalItems = 0;
         cart.forEach(item => {
-            totalItems += (item.quantity || 1);
+            if (item && typeof item === 'object') {
+                const quantity = typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1;
+                totalItems += quantity;
+            } else if (typeof item === 'string') {
+                // Eski format desteği (eğer sadece ID'ler varsa)
+                totalItems += 1;
+            }
         });
-        cartCount.textContent = totalItems;
+        
+        // Tüm cart-count elementlerini güncelle
+        cartCountElements.forEach(element => {
+            if (element) {
+                // Her zaman sayıyı güncelle, görünür/gizli durumunu sonra yönet
+                element.textContent = totalItems;
+                
+                // Eğer ürün varsa badge'i göster, yoksa gizle
+                if (totalItems > 0) {
+                    element.classList.remove('hidden');
+                    
+                    // Parent elementindeki badge'i kontrol et
+                    const parentElement = element.parentElement;
+                    if (parentElement && parentElement.classList.contains('badge')) {
+                        parentElement.classList.remove('hidden');
+                    }
+                } else {
+                    // Sepet boşsa sayı 0 olarak kalacak ama gizleme yapmayacağız
+                    // Badge elementini görünür tut ama sadece 0 göster
+                    // element.classList.add('hidden'); - Bu satırı kaldırdık
+                    
+                    // Parent badge'i kontrol et
+                    const parentElement = element.parentElement;
+                    if (parentElement && parentElement.classList.contains('badge')) {
+                        parentElement.classList.remove('hidden'); // Her zaman görünür olsun
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Sepet sayısı güncellenirken hata oluştu:', error);
     }
 }
 
@@ -344,6 +399,7 @@ function setupDropdowns() {
 function updateNavbarAuthUI() {
     const token = localStorage.getItem('token');
     const userName = localStorage.getItem('userName');
+    const userRole = localStorage.getItem('userRole');
     
     const authLinks = document.querySelectorAll('.auth-link');
     const profileLinks = document.querySelectorAll('.profile-link');
@@ -353,8 +409,21 @@ function updateNavbarAuthUI() {
         authLinks.forEach(link => link.style.display = 'none');
         profileLinks.forEach(link => {
             link.style.display = 'block';
-            if (link.querySelector('.user-name')) {
-                link.querySelector('.user-name').textContent = userName;
+            
+            // Kullanıcı admin ise profil linki yerine admin paneli linki göster
+            const profileLink = link.querySelector('.user-profile-btn');
+            if (profileLink) {
+                if (userRole === 'admin') {
+                    profileLink.href = '/views/admin/dashboard.html';
+                    if (profileLink.querySelector('.user-name')) {
+                        profileLink.querySelector('.user-name').textContent = 'Admin Panel';
+                    }
+                } else {
+                    profileLink.href = '/views/profile.html';
+                    if (profileLink.querySelector('.user-name')) {
+                        profileLink.querySelector('.user-name').textContent = userName;
+                    }
+                }
             }
         });
     } else {

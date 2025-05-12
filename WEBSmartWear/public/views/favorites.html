@@ -3,154 +3,384 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Favorilerim | Smartwear</title>
+    <title>Favorilerim | SmartWear</title>
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/components/navbar.css">
-    <link rel="stylesheet" href="../css/components/auth.css">
     <link rel="stylesheet" href="../css/components/profile.css">
-    <link rel="stylesheet" href="../css/components/product-card.css">
+    <link rel="stylesheet" href="../css/favorites.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="../js/auth-check.js"></script>
+    <script src="../js/dependencies.js"></script>
 </head>
 <body>
-    <!-- Navbar will be loaded here -->
-    <div id="navbar-container"></div>
-
-    <!-- Favorites Section -->
-    <section class="profile-section">
-        <div class="profile-container">
-            <div class="profile-header">
-                <h2>Favorilerim</h2>
-                <p class="welcome-message">Beğendiğiniz ürünleri daha sonra kolayca bulmak için favorilerinize ekleyebilirsiniz.</p>
+    <div class="favorites-container">
+        <div id="favorites-content">
+            <!-- Boş durum başlangıçta görünür -->
+            <div id="empty-favorites" class="empty-favorites">
+                <i class="far fa-heart"></i>
+                <h3>Henüz favoriniz bulunmuyor</h3>
+                <p>Beğendiğiniz ürünleri favorilerinize ekleyerek burada görebilirsiniz.</p>
             </div>
             
-            <div id="favorites-list" class="favorites-list">
-                <p class="empty-state">Henüz favori ürününüz bulunmamaktadır.</p>
+            <!-- Yükleniyor göstergesi -->
+            <div id="loading-indicator" class="loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <p class="loading-text" id="loading-text">Favorileriniz yükleniyor...</p>
             </div>
+            
+            <!-- Favorilerin gösterileceği alan -->
+            <div id="favorites-grid" class="favorites-grid" style="display: none;"></div>
         </div>
-    </section>
+    </div>
+    
+    <!-- Bildirim alanı -->
+    <div id="notification-container"></div>
 
-    <!-- Newsletter Section -->
-    <section class="newsletter">
-        <div class="newsletter-content">
-            <h2>Yeni Ürünlerden Haberdar Olun</h2>
-            <p>En yeni ürünler ve özel indirimler için bültenimize kayıt olun</p>
-            <form class="newsletter-form">
-                <input type="email" placeholder="E-posta adresiniz">
-                <button type="submit">Kayıt Ol</button>
-            </form>
-        </div>
-    </section>
-
-    <!-- Load Components -->
-    <script src="../js/components/navbar.js"></script>
+    <!-- Script -->
     <script>
-        // Load navbar
-        fetch('../components/navbar.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('navbar-container').innerHTML = data;
-                // Update auth UI after navbar is loaded
-                if (typeof updateNavbarAuthUI === 'function') {
-                    updateNavbarAuthUI();
-                }
-                // Re-initialize search functionality after navbar is loaded
-                if (typeof setupSearchFunctionality === 'function') {
-                    setupSearchFunctionality();
-                }
-            });
-            
-        // Initialize page
+        // Sayfa yüklendiğinde çalışacak kodlar
         document.addEventListener('DOMContentLoaded', () => {
-            // Load favorites from localStorage
-            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-            const favoritesList = document.getElementById('favorites-list');
-            
-            if (favorites.length === 0) {
-                return; // Keep the empty state
-            }
-            
-            // Clear empty state
-            favoritesList.innerHTML = '';
-            
-            // Create a grid to display favorites
-            const favoritesGrid = document.createElement('div');
-            favoritesGrid.className = 'favorites-grid';
-            favoritesList.appendChild(favoritesGrid);
-            
-            // Ürün bilgilerini almak için API'ye istek gönderelim
-            Promise.all(favorites.map(productId => 
-                fetch(`/api/products/${productId}`)
-                    .then(response => response.json())
-                    .catch(error => ({
-                        _id: productId,
-                        name: 'Ürün bilgisi alınamadı',
-                        price: 0,
-                        image: '../images/products/placeholder.jpg'
-                    }))
-            ))
-            .then(products => {
-                products.forEach(product => {
-                    const favoriteItem = document.createElement('div');
-                    favoriteItem.className = 'favorite-item';
-                    favoriteItem.innerHTML = `
-                        <a href="/views/product.html?id=${product._id}" class="favorite-img">
-                            <img src="${product.image}" alt="${product.name}" onerror="this.src='../images/products/placeholder.jpg'">
-                        </a>
-                        <div class="favorite-details">
-                            <h4>${product.name}</h4>
-                            <p class="price">${product.price ? product.price.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' }) : '₺0.00'}</p>
-                            <div class="favorite-actions">
-                                <button class="add-to-cart" onclick="addToCart('${product._id}')"><i class="fas fa-shopping-cart"></i></button>
-                                <button class="remove-favorite" data-id="${product._id}"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </div>
-                    `;
-                    favoritesGrid.appendChild(favoriteItem);
-                });
-                
-                // Add event listeners to remove buttons
-                document.querySelectorAll('.remove-favorite').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const productId = button.getAttribute('data-id');
-                        removeFavorite(productId);
-                    });
-                });
-            });
+            // Favorileri yükle
+            loadFavorites();
         });
         
-        // Remove a favorite
-        function removeFavorite(productId) {
-            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-            favorites = favorites.filter(id => id != productId);
-            localStorage.setItem('favorites', JSON.stringify(favorites));
+        // Favorileri yükleme fonksiyonu
+        function loadFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const emptyFavorites = document.getElementById('empty-favorites');
+            const favoritesGrid = document.getElementById('favorites-grid');
+            const loadingIndicator = document.getElementById('loading-indicator');
             
-            // Reload the page to reflect changes
-            window.location.reload();
+            // Favori yoksa, boş durum mesajını göster
+            if (favorites.length === 0) {
+                emptyFavorites.style.display = 'block';
+                favoritesGrid.style.display = 'none';
+                loadingIndicator.style.display = 'none';
+                return;
+            }
+            
+            // Yükleme göstergesini göster
+            emptyFavorites.style.display = 'none';
+            favoritesGrid.style.display = 'none';
+            loadingIndicator.style.display = 'flex';
+            
+            // Önbellek nesnesini al
+            let cachedProductData = JSON.parse(localStorage.getItem('cachedProductData')) || {};
+            
+            // Ürünleri API'den almak yerine Promise.all kullanarak paralel olarak al
+            const productPromises = favorites.map(productId => fetchProductDetails(productId));
+            
+            Promise.all(productPromises)
+                .then(products => {
+                    // Geçerli ürünleri filtrele ve önbelleğe ekle
+                    const validProducts = products.filter(product => product !== null);
+                    
+                    // Önbelleği güncelle
+                    validProducts.forEach(product => {
+                        cachedProductData[product._id] = product;
+                    });
+                    localStorage.setItem('cachedProductData', JSON.stringify(cachedProductData));
+                    
+                    // Ürünleri göster
+                    displayFavoriteProducts(validProducts);
+                    
+                    // Yükleme göstergesini gizle
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Eğer geçerli ürün yoksa boş durum mesajını göster
+                    if (validProducts.length === 0) {
+                        emptyFavorites.style.display = 'block';
+                    } else {
+                        favoritesGrid.style.display = 'grid';
+                    }
+                })
+                .catch(error => {
+                    console.error('Favoriler yüklenirken hata oluştu:', error);
+                    showNotification('Favoriler yüklenirken bir hata oluştu', 'error');
+                    
+                    // Hata durumunda yükleme göstergesini gizle
+                    loadingIndicator.style.display = 'none';
+                    emptyFavorites.style.display = 'block';
+                });
         }
         
-        // Add to cart function
-        function addToCart(productId) {
-            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            cart.push(productId);
-            localStorage.setItem('cart', JSON.stringify(cart));
-            
-            // Show notification
-            const notification = document.createElement('div');
-            notification.className = 'notification';
-            notification.textContent = 'Ürün sepete eklendi!';
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-            
-            // Update cart count if function exists
-            if (typeof updateCartCount === 'function') {
-                updateCartCount();
+        // Ürün detaylarını getirme
+        async function fetchProductDetails(productId) {
+            try {
+                const response = await fetch(`/api/products/${productId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Ürün bilgisi alınamadı. HTTP Kodu: ${response.status}`);
+                }
+                
+                const product = await response.json();
+                
+                // Ürün nesnesini gerekli alanlarla zenginleştirelim
+                return {
+                    _id: product._id || productId,
+                    name: product.name || 'İsimsiz Ürün',
+                    price: typeof product.price === 'number' ? product.price : 0,
+                    category: product.category || 'Diğer',
+                    imagePath: product.imagePath || null,
+                    image: product.image || null,
+                    thumbnail: product.thumbnail || null,
+                    description: product.description || 'Ürün açıklaması bulunmuyor',
+                    stock: typeof product.stock === 'number' ? product.stock : 0
+                };
+            } catch (error) {
+                // Önbellekten ürün bilgisini almayı dene
+                try {
+                    const cachedFavorites = JSON.parse(localStorage.getItem('cachedProductData')) || {};
+                    if (cachedFavorites[productId]) {
+                        return cachedFavorites[productId];
+                    }
+                } catch (cacheError) {
+                    console.error('Önbellek kontrolünde hata:', cacheError);
+                }
+                
+                // Hata durumunda placeholder bir ürün oluştur
+                return {
+                    _id: productId,
+                    name: 'Ürün Bilgisi Alınamadı',
+                    price: 0,
+                    category: 'Bilinmiyor',
+                    imagePath: '../img/product-placeholder.jpg',
+                    description: 'Ürün bilgisi geçici olarak alınamıyor.'
+                };
             }
         }
+        
+        // Favori ürünleri görüntüleme
+        function displayFavoriteProducts(products) {
+            const favoritesGrid = document.getElementById('favorites-grid');
+            favoritesGrid.innerHTML = ''; // Grid'i temizle
+            
+            products.forEach(product => {
+                // Kategori bazlı placeholder görselleri
+                let placeholderImage = '../img/product-placeholder.jpg';
+                
+                if (product.category) {
+                    const category = product.category.toLowerCase();
+                    
+                    if (category.includes('ayakkabı') || category.includes('shoes')) {
+                        placeholderImage = '../img/category-shoes.jpg';
+                    } else if (category.includes('aksesuar') || category.includes('accessories')) {
+                        placeholderImage = '../img/category-accessories.jpg';
+                    } else if (category.includes('giyim') || category.includes('clothing')) {
+                        placeholderImage = '../img/category-clothing.jpg';
+                    }
+                }
+                
+                // Ürün görselini belirle
+                let productImage = null;
+                const possibleSources = [
+                    { path: product.imagePath, type: 'imagePath' },
+                    { path: product.image, type: 'image' },
+                    { path: product.thumbnail, type: 'thumbnail' }
+                ];
+                
+                // Geçerli bir görsel kaynağı bul
+                for (const source of possibleSources) {
+                    if (source.path && 
+                        source.path !== 'null' && 
+                        source.path !== 'undefined' && 
+                        source.path !== '' && 
+                        typeof source.path === 'string') {
+                        
+                        productImage = source.path;
+                        break;
+                    }
+                }
+                
+                // Görsel bulunamadıysa placeholder kullan
+                if (!productImage) {
+                    productImage = placeholderImage;
+                }
+                
+                // Görsel yolunu düzelt
+                if (productImage && !productImage.startsWith('http') && 
+                    !productImage.startsWith('/') && 
+                    !productImage.startsWith('../') &&
+                    !productImage.startsWith('./')) {
+                    
+                    productImage = '../img/' + productImage;
+                }
+                
+                // Alternatif görsel yolları
+                const alternativeImagePaths = [
+                    productImage,
+                    productImage.replace('/img/', '/images/products/'),
+                    '../images/products/' + product._id + '.jpg',
+                    '../images/products/' + (product.name ? product.name.toLowerCase().replace(/\s+/g, '_') : 'unknown') + '.jpg',
+                    placeholderImage
+                ];
+                
+                // Ürün fiyatını formatla
+                const formattedPrice = product.price 
+                    ? `₺${parseFloat(product.price).toLocaleString('tr-TR')}`
+                    : 'Fiyat Bilgisi Yok';
+                
+                // Stok durumu
+                const isInStock = product.stock > 0;
+                const stockText = isInStock ? `${product.stock} adet stokta` : 'Stokta Yok';
+                const stockClass = isInStock ? '' : 'out-of-stock';
+                
+                // Ürün kartını oluştur
+                const favoriteCard = document.createElement('div');
+                favoriteCard.className = 'favorite-card';
+                favoriteCard.setAttribute('data-id', product._id);
+                
+                favoriteCard.innerHTML = `
+                    <div class="favorite-img-container" onclick="redirectToProductDetail('${product._id}')">
+                        <span class="stock-badge ${stockClass}">${stockText}</span>
+                        <img 
+                            src="${productImage}" 
+                            alt="${product.name}" 
+                            onerror="
+                                let imgErrorAttempt = parseInt(this.getAttribute('data-error-attempt') || '0');
+                                
+                                const alternativePaths = ${JSON.stringify(alternativeImagePaths)};
+                                imgErrorAttempt++;
+                                
+                                if (imgErrorAttempt < alternativePaths.length) {
+                                    this.src = alternativePaths[imgErrorAttempt];
+                                    this.setAttribute('data-error-attempt', imgErrorAttempt);
+                                } else {
+                                    this.src = '${placeholderImage}';
+                                    this.setAttribute('data-error-attempt', '0');
+                                    this.onerror = null;
+                                }
+                            "
+                            data-error-attempt="0"
+                        >
+                    </div>
+                    <div class="favorite-info">
+                        <span class="favorite-category">${product.category}</span>
+                        <h3 class="favorite-title" onclick="redirectToProductDetail('${product._id}')">${product.name}</h3>
+                        <div class="favorite-price">${formattedPrice}</div>
+                        <div class="favorite-actions">
+                            <button class="btn-action btn-cart" onclick="addToCart('${product._id}')" ${!isInStock ? 'disabled' : ''}>
+                                <i class="fas fa-shopping-cart"></i> Sepete Ekle
+                            </button>
+                            <button class="btn-action btn-remove" onclick="removeFromFavorites('${product._id}')">
+                                <i class="fas fa-trash"></i> Kaldır
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                favoritesGrid.appendChild(favoriteCard);
+            });
+        }
+        
+        // Ürün detay sayfasına yönlendirme
+        function redirectToProductDetail(productId) {
+            window.parent.location.href = `/views/product-detail.html?id=${productId}`;
+        }
+        
+        // Favorilerden kaldırma
+        function removeFromFavorites(productId) {
+            // Favorileri localStorage'dan al
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            
+            // ID'yi favorilerden çıkar
+            favorites = favorites.filter(id => id !== productId);
+            
+            // Güncellenmiş favorileri localStorage'a kaydet
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            
+            // Kullanıcıya bildir
+            showNotification('Ürün favorilerden kaldırıldı', 'info');
+            
+            // Sayfadaki ilgili ürünü kaldır
+            const favoriteItem = document.querySelector(`.favorite-card[data-id="${productId}"]`);
+            if (favoriteItem) {
+                favoriteItem.style.opacity = '0';
+                favoriteItem.style.transform = 'scale(0.8)';
+                
+                setTimeout(() => {
+                    favoriteItem.remove();
+                    
+                    // Favoriler boşsa, boş durumu göster
+                    if (favorites.length === 0) {
+                        document.getElementById('empty-favorites').style.display = 'block';
+                        document.getElementById('favorites-grid').style.display = 'none';
+                    }
+                }, 300);
+            }
+        }
+        
+        // Sepete ekleme
+        function addToCart(productId) {
+            // Önbellekten ürün bilgisini al
+            const cachedProductData = JSON.parse(localStorage.getItem('cachedProductData')) || {};
+            const product = cachedProductData[productId];
+            
+            if (!product || product.stock <= 0) {
+                showNotification('Bu ürün stokta bulunmamaktadır', 'error');
+                return;
+            }
+            
+            // Sepeti localStorage'dan al
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            
+            // Sepette aynı üründen var mı kontrol et
+            const existingItem = cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                // Eğer ürün zaten sepette varsa miktarını artır
+                existingItem.quantity += 1;
+                showNotification('Ürün miktarı sepette güncellendi', 'success');
+            } else {
+                // Yoksa yeni ürün olarak ekle
+                cart.push({
+                    id: productId,
+                    name: product.name,
+                    price: product.price,
+                    image: product.imagePath || product.image || product.thumbnail,
+                    quantity: 1
+                });
+                showNotification('Ürün sepete eklendi', 'success');
+            }
+            
+            // Sepeti güncelle
+            localStorage.setItem('cart', JSON.stringify(cart));
+            
+            // Ana sayfada sepet sayısını güncelle
+            if (window.parent && window.parent.updateCartCount) {
+                window.parent.updateCartCount();
+            }
+        }
+        
+        // Bildirim gösterme
+        function showNotification(message, type = 'success') {
+            const notificationContainer = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            // İkon ekle
+            let icon = '';
+            if (type === 'success') icon = '<i class="fas fa-check-circle"></i>';
+            else if (type === 'error') icon = '<i class="fas fa-exclamation-circle"></i>';
+            else if (type === 'info') icon = '<i class="fas fa-info-circle"></i>';
+            
+            notification.innerHTML = `${icon} <span>${message}</span>`;
+            
+            // Bildirim containerına ekle
+            notificationContainer.appendChild(notification);
+            
+            // Bildirim gösterme animasyonu
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+            
+            // 3 saniye sonra bildirim kaybolur
+            setTimeout(() => {
+                notification.classList.remove('show');
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
     </script>
-    <script src="../js/auth.js"></script>
 </body>
 </html> 

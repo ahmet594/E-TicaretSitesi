@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürünleri Yönet - Admin Paneli - SmartWear</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <div id="navbar-container"></div>
+
+    <main class="admin-container">
+        <div class="admin-sidebar">
+            <div class="admin-profile">
+                <i class="fas fa-user-shield"></i>
+                <h3>Admin Paneli</h3>
+            </div>
+            <nav class="admin-nav">
+                <ul>
+                    <li><a href="/views/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Ana Panel</a></li>
+                    <li><a href="/views/admin/add-product.html"><i class="fas fa-plus-circle"></i> Ürün Ekle</a></li>
+                    <li class="active"><a href="/views/admin/manage-products.html"><i class="fas fa-box"></i> Ürünleri Yönet</a></li>
+                    <li><a href="/views/admin/manage-users.html"><i class="fas fa-users"></i> Kullanıcıları Yönet</a></li>
+                </ul>
+            </nav>
+            <div class="admin-logout">
+                <button id="admin-logout-btn"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+            </div>
+        </div>
+        
+        <div class="admin-content">
+            <div class="admin-header">
+                <h1>Ürünleri Yönet</h1>
+                <p id="admin-date">Tarih: <span></span></p>
+            </div>
+            
+            <div class="filter-controls">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Ürün ara...">
+                    <button id="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="filter-options">
+                    <select id="category-filter">
+                        <option value="">Tüm Kategoriler</option>
+                        <option value="Giyim">Giyim</option>
+                        <option value="Ayakkabı">Ayakkabı</option>
+                        <option value="Aksesuar">Aksesuar</option>
+                    </select>
+                    <select id="status-filter">
+                        <option value="">Tüm Durumlar</option>
+                        <option value="featured">Öne Çıkanlar</option>
+                        <option value="in-stock">Stokta Var</option>
+                        <option value="out-of-stock">Stokta Yok</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="products-container">
+                <table class="admin-table products-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Görsel</th>
+                            <th>Ürün Adı</th>
+                            <th>Kategori</th>
+                            <th>Fiyat</th>
+                            <th>Stok</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table-body">
+                        <!-- Ürünler JavaScript ile buraya eklenecek -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="pagination">
+                <button id="prev-page" disabled><i class="fas fa-chevron-left"></i> Önceki</button>
+                <div id="page-numbers">
+                    <span class="current-page">1</span> / <span id="total-pages">1</span>
+                </div>
+                <button id="next-page">Sonraki <i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Ürün Detay/Düzenleme Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Ürün Düzenle</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-product-form">
+                    <input type="hidden" id="edit-product-id">
+                    
+                    <div class="form-group">
+                        <label for="edit-product-name">Ürün Adı</label>
+                        <input type="text" id="edit-product-name" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-product-description">Ürün Açıklaması</label>
+                        <textarea id="edit-product-description" name="description" required></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-product-price">Fiyat (₺)</label>
+                            <input type="number" id="edit-product-price" name="price" min="0" step="0.01" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-product-stock">Stok Adedi</label>
+                            <input type="number" id="edit-product-stock" name="stock" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-product-category">Kategori</label>
+                            <select id="edit-product-category" name="category" required>
+                                <option value="Giyim">Giyim</option>
+                                <option value="Ayakkabı">Ayakkabı</option>
+                                <option value="Aksesuar">Aksesuar</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-product-subcategory">Alt Kategori</label>
+                            <select id="edit-product-subcategory" name="subcategory">
+                                <option value="">Alt Kategori Seçin</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-product-color">Renk</label>
+                        <input type="text" id="edit-product-color" name="color">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-product-brand">Marka</label>
+                        <input type="text" id="edit-product-brand" name="brand">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="edit-product-featured" name="featured">
+                            Öne Çıkan Ürün
+                        </label>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="cancel-btn" data-dismiss="modal">İptal</button>
+                        <button type="submit" class="submit-btn">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-container"></div>
+
+    <!-- Silme Onay Modalı -->
+    <div id="delete-confirm-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Ürünü Sil</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Bu ürünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</p>
+                <div class="modal-actions">
+                    <button id="cancel-delete" class="cancel-btn"><i class="fas fa-times"></i> İptal</button>
+                    <button id="confirm-delete" class="delete-btn"><i class="fas fa-trash"></i> Ürünü Sil</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="/js/components/components-loader.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Admin erişim kontrolü
+            const userRole = localStorage.getItem('userRole');
+            if (userRole !== 'admin') {
+                window.location.href = '/views/index.html';
+                return;
+            }
+            
+            // Tarih bilgisini güncelle
+            updateDateDisplay();
+            
+            // Sayfalama değişkenleri
+            let currentPage = 1;
+            let totalPages = 1;
+            let pageSize = 10;
+            
+            // Filtreleme değişkenleri
+            let searchQuery = '';
+            let categoryFilter = '';
+            let sortBy = 'new';
+            
+            // Ürünleri yükle
+            loadProducts();
+            
+            // Arama kutusu
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            
+            searchBtn.addEventListener('click', function() {
+                searchQuery = searchInput.value.trim();
+                currentPage = 1;
+                loadProducts();
+            });
+            
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchQuery = searchInput.value.trim();
+                    currentPage = 1;
+                    loadProducts();
+                }
+            });
+            
+            // Kategori filtresi
+            const categoryFilterSelect = document.getElementById('category-filter');
+            categoryFilterSelect.addEventListener('change', function() {
+                categoryFilter = this.value;
+                currentPage = 1;
+                loadProducts();
+            });
+            
+            // Sıralama
+            const sortBySelect = document.getElementById('sort-by');
+            sortBySelect.addEventListener('change', function() {
+                sortBy = this.value;
+                loadProducts();
+            });
+            
+            // Sayfalama kontrolleri
+            const prevPageBtn = document.getElementById('prev-page');
+            const nextPageBtn = document.getElementById('next-page');
+            
+            prevPageBtn.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadProducts();
+                }
+            });
+            
+            nextPageBtn.addEventListener('click', function() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    loadProducts();
+                }
+            });
+            
+            // Modal işlemleri
+            const productModal = document.getElementById('product-modal');
+            const deleteConfirmModal = document.getElementById('delete-confirm-modal');
+            const closeModalBtns = document.querySelectorAll('.close-modal');
+            
+            // Modal kapatma düğmeleri
+            closeModalBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    productModal.style.display = 'none';
+                    deleteConfirmModal.style.display = 'none';
+                });
+            });
+            
+            // Modal dışına tıklayınca kapat
+            window.addEventListener('click', function(e) {
+                if (e.target === productModal) {
+                    productModal.style.display = 'none';
+                }
+                if (e.target === deleteConfirmModal) {
+                    deleteConfirmModal.style.display = 'none';
+                }
+            });
+            
+            // Ürün düzenleme formu
+            const editProductForm = document.getElementById('edit-product-form');
+            
+            editProductForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const productId = document.getElementById('edit-product-id').value;
+                
+                try {
+                    const formData = new FormData(this);
+                    const response = await fetch(`/api/products/${productId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(Object.fromEntries(formData))
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Ürün güncellenirken bir hata oluştu');
+                    }
+                    
+                    alert('Ürün başarıyla güncellendi');
+                    productModal.style.display = 'none';
+                    loadProducts();
+                } catch (error) {
+                    alert(`Hata: ${error.message}`);
+                    console.error('Ürün güncelleme hatası:', error);
+                }
+            });
+            
+            // Ürün silme düğmesi
+            const deleteProductBtn = document.getElementById('delete-product-btn');
+            
+            deleteProductBtn.addEventListener('click', function() {
+                productModal.style.display = 'none';
+                deleteConfirmModal.style.display = 'block';
+            });
+            
+            // Silme işlemini iptal et
+            const cancelDeleteBtn = document.getElementById('cancel-delete');
+            
+            cancelDeleteBtn.addEventListener('click', function() {
+                deleteConfirmModal.style.display = 'none';
+                productModal.style.display = 'block';
+            });
+            
+            // Silme işlemini onayla
+            const confirmDeleteBtn = document.getElementById('confirm-delete');
+            
+            confirmDeleteBtn.addEventListener('click', async function() {
+                const productId = document.getElementById('edit-product-id').value;
+                
+                try {
+                    const response = await fetch(`/api/products/${productId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Ürün silinirken bir hata oluştu');
+                    }
+                    
+                    alert('Ürün başarıyla silindi');
+                    deleteConfirmModal.style.display = 'none';
+                    loadProducts();
+                } catch (error) {
+                    alert(`Hata: ${error.message}`);
+                    console.error('Ürün silme hatası:', error);
+                }
+            });
+            
+            // Ürünleri API'den alma
+            async function loadProducts() {
+                const productsList = document.getElementById('products-table-body');
+                productsList.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="loading-message">
+                            <i class="fas fa-spinner fa-spin"></i> Ürünler yükleniyor...
+                        </td>
+                    </tr>
+                `;
+                
+                try {
+                    // API'ye istek atmadan önce tokeni kontrol et
+                    if (!localStorage.getItem('token')) {
+                        throw new Error('Oturum süresi dolmuş');
+                    }
+                    
+                    // Filtre parametrelerini hazırla
+                    const params = new URLSearchParams({
+                        page: currentPage,
+                        limit: pageSize
+                    });
+                    
+                    if (searchQuery) params.append('search', searchQuery);
+                    if (categoryFilter) params.append('category', categoryFilter);
+                    if (sortBy) params.append('sort', sortBy);
+                    
+                    const response = await fetch(`/api/products?${params.toString()}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Ürünler yüklenirken bir hata oluştu');
+                    }
+                    
+                    const data = await response.json();
+                    const products = data.products || data;
+                    
+                    // Sayfalama bilgisini güncelle
+                    totalPages = data.totalPages || 1;
+                    document.getElementById('total-pages').textContent = totalPages;
+                    document.querySelector('.current-page').textContent = currentPage;
+                    
+                    // Sayfalama butonlarını güncelle
+                    prevPageBtn.disabled = currentPage <= 1;
+                    nextPageBtn.disabled = currentPage >= totalPages;
+                    
+                    // Ürün listesini oluştur
+                    if (products.length === 0) {
+                        productsList.innerHTML = `
+                            <tr>
+                                <td colspan="8" class="no-results">
+                                    <i class="fas fa-info-circle"></i> Ürün bulunamadı.
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        let html = '';
+                        
+                        products.forEach(product => {
+                            const productImage = product.imagePath || '/public/images/products/default.jpg';
+                            const statusClass = product.status === 'active' ? 'status-active' : 
+                                              product.status === 'featured' ? 'status-featured' : 'status-inactive';
+                            const statusText = product.status === 'active' ? 'Aktif' : 
+                                             product.status === 'featured' ? 'Öne Çıkan' : 'Pasif';
+                            
+                            html += `
+                                <tr data-id="${product._id}">
+                                    <td>${product._id.substring(0, 8)}...</td>
+                                    <td>
+                                        <div class="product-img">
+                                            <img src="${productImage}" alt="${product.name}">
+                                        </div>
+                                    </td>
+                                    <td>${product.name}</td>
+                                    <td>${product.category || 'Genel'}</td>
+                                    <td>₺${product.price.toFixed(2)}</td>
+                                    <td>${product.stock || 0}</td>
+                                    <td><span class="status ${statusClass}">${statusText}</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="edit-product" data-id="${product._id}"><i class="fas fa-edit"></i></button>
+                                            <button class="delete-product" data-id="${product._id}"><i class="fas fa-trash"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        
+                        productsList.innerHTML = html;
+                        
+                        // Düzenleme ve silme butonlarına olay dinleyicileri ekle
+                        document.querySelectorAll('.edit-product').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const productId = this.getAttribute('data-id');
+                                openProductModal(productId);
+                            });
+                        });
+                        
+                        document.querySelectorAll('.delete-product').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const productId = this.getAttribute('data-id');
+                                document.getElementById('edit-product-id').value = productId;
+                                deleteConfirmModal.style.display = 'block';
+                            });
+                        });
+                    }
+                } catch (error) {
+                    productsList.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="error-message">
+                                <i class="fas fa-exclamation-triangle"></i> Hata: ${error.message}
+                            </td>
+                        </tr>
+                    `;
+                    console.error('Ürünleri yükleme hatası:', error);
+                }
+            }
+            
+            // Ürün düzenleme modalını aç
+            async function openProductModal(productId) {
+                try {
+                    const response = await fetch(`/api/products/${productId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Ürün bilgileri alınamadı');
+                    }
+                    
+                    const product = await response.json();
+                    
+                    // Form alanlarını doldur
+                    document.getElementById('edit-product-id').value = product._id;
+                    document.getElementById('edit-product-name').value = product.name;
+                    document.getElementById('edit-product-price').value = product.price;
+                    document.getElementById('edit-product-stock').value = product.stock || 0;
+                    document.getElementById('edit-product-category').value = product.category || 'Giyim';
+                    document.getElementById('edit-product-description').value = product.description || '';
+                    
+                    // Modalı göster
+                    productModal.style.display = 'block';
+                } catch (error) {
+                    alert(`Hata: ${error.message}`);
+                    console.error('Ürün bilgilerini alma hatası:', error);
+                }
+            }
+        });
+        
+        // Tarih bilgisini güncelle
+        function updateDateDisplay() {
+            const dateElement = document.querySelector('#admin-date span');
+            if (dateElement) {
+                const now = new Date();
+                dateElement.textContent = now.toLocaleDateString('tr-TR');
+            }
+        }
+    </script>
+</body>
+</html> 

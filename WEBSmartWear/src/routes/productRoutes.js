@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
+const { uploadProductImages } = require('../middleware/uploadMiddleware');
 const cors = require('cors');
 
 // CORS ayarları - Mobil uygulama için gerekli
@@ -39,11 +40,14 @@ router.get('/category/:category/subcategory/:subcategory', asyncHandler(productC
 // Get single product
 router.get('/:id', asyncHandler(productController.getProductById));
 
+// Ürün görseli yükleme endpoint'i
+router.post('/upload-image', uploadProductImages.single('image'), asyncHandler(productController.uploadProductImage));
+
 // Create product
-router.post('/', asyncHandler(productController.createProduct));
+router.post('/', uploadProductImages.array('images', 5), asyncHandler(productController.createProduct));
 
 // Update product
-router.put('/:id', asyncHandler(productController.updateProduct));
+router.put('/:id', uploadProductImages.array('images', 5), asyncHandler(productController.updateProduct));
 
 // Delete product
 router.delete('/:id', asyncHandler(productController.deleteProduct));

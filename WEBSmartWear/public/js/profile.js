@@ -112,67 +112,9 @@ function loadOrdersData() {
 
 // Load favorites data
 function loadFavoritesData() {
-    try {
-        const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-        const favoritesList = document.getElementById('favorites-list');
-        
-        if (favorites.length === 0) {
-            return; // Keep the empty state
-        }
-        
-        // Clear empty state
-        favoritesList.innerHTML = '';
-        
-        // Create a grid to display favorites
-        const favoritesGrid = document.createElement('div');
-        favoritesGrid.className = 'favorites-grid';
-        favoritesList.appendChild(favoritesGrid);
-        
-        // This would typically fetch product details from an API using the IDs
-        // For now, we'll just show placeholder content
-        favorites.forEach(productId => {
-            const favoriteItem = document.createElement('div');
-            favoriteItem.className = 'favorite-item';
-            favoriteItem.innerHTML = `
-                <div class="favorite-img-placeholder">
-                    <i class="fas fa-tshirt"></i>
-                </div>
-                <div class="favorite-details">
-                    <h4>Ürün #${productId}</h4>
-                    <p class="price">₺199.99</p>
-                    <div class="favorite-actions">
-                        <button class="add-to-cart"><i class="fas fa-shopping-cart"></i></button>
-                        <button class="remove-favorite" data-id="${productId}"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            `;
-            favoritesGrid.appendChild(favoriteItem);
-        });
-        
-        // Add event listeners to remove buttons
-        document.querySelectorAll('.remove-favorite').forEach(button => {
-            button.addEventListener('click', () => {
-                const productId = button.getAttribute('data-id');
-                removeFavorite(productId);
-            });
-        });
-    } catch (error) {
-        console.error('Error loading favorites:', error);
-    }
-}
-
-// Remove a favorite
-function removeFavorite(productId) {
-    try {
-        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-        favorites = favorites.filter(id => id != productId);
-        localStorage.setItem('favorites', JSON.stringify(favorites));
-        
-        // Reload favorites
-        loadFavoritesData();
-    } catch (error) {
-        console.error('Error removing favorite:', error);
-    }
+    // Favoriler artık iframe içinde gösterildiği için 
+    // burada özel bir işlem yapmamıza gerek yok
+    console.log('Favoriler iframe üzerinden yükleniyor');
 }
 
 // Setup tab navigation

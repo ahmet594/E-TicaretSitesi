@@ -13,13 +13,61 @@
         </div>
         <div class="nav-icons">
             <a href="/views/cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count">0</span></a>
-            <div class="auth-buttons">
+            <!-- Giriş yapmamış kullanıcılar için görünecek -->
+            <div class="auth-buttons auth-link">
                 <a href="/views/login.html" class="login-btn">Giriş Yap</a>
                 <a href="/views/register.html" class="register-btn">Kayıt Ol</a>
+            </div>
+            <!-- Giriş yapmış kullanıcılar için görünecek -->
+            <div class="profile-link" style="display: none;">
+                <a href="/views/profile.html" class="user-profile-btn">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="user-name">Profil</span>
+                </a>
             </div>
         </div>
         <div class="mobile-menu-btn">
             <i class="fas fa-bars"></i>
         </div>
     </nav>
-</header> 
+</header>
+
+<!-- Global sepet yönetimi -->
+<script>
+// Bu sayfa yüklendiğinde global sepet yönetim dosyasını yükle
+const globalCartScript = document.createElement('script');
+globalCartScript.src = '../js/global-cart.js';
+document.body.appendChild(globalCartScript);
+
+// Sepet sayısını güncelle
+function updateCartCount() {
+    const cartCountBadges = document.querySelectorAll('.cart-count');
+    const cartData = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    // Sepetteki toplam ürün sayısını hesapla (miktarları da dikkate alarak)
+    let totalItems = 0;
+    try {
+        cartData.forEach(item => {
+            if (item && typeof item === 'object' && item.quantity && !isNaN(item.quantity)) {
+                totalItems += Number(item.quantity);
+            } else {
+                totalItems += 1; // Eski format desteği (sadece ID'ler varsa)
+            }
+        });
+    } catch (error) {
+        console.error('Sepet hesaplama hatası:', error);
+    }
+    
+    // Sepet boş olsa bile badge'ı göster ve sayıyı yazdır
+    cartCountBadges.forEach(badge => {
+        badge.textContent = totalItems;
+        badge.classList.remove('hidden');
+    });
+    
+    console.log('Navbar - Sepet sayısı güncellendi:', totalItems);
+}
+</script>
+
+<style>
+/* Navbar stilleri */
+</style> 

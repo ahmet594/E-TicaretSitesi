@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürün Ekle - Admin Paneli - SmartWear</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        .image-upload-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 10px;
+            background-color: #f9f9f9;
+        }
+
+        .image-upload-container:hover {
+            border-color: #666;
+        }
+
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .preview-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .preview-image-container {
+            position: relative;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar-container"></div>
+
+    <main class="admin-container">
+        <div class="admin-sidebar">
+            <div class="admin-profile">
+                <i class="fas fa-user-shield"></i>
+                <h3>Admin Paneli</h3>
+            </div>
+            <nav class="admin-nav">
+                <ul>
+                    <li><a href="/views/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Ana Panel</a></li>
+                    <li class="active"><a href="/views/admin/add-product.html"><i class="fas fa-plus-circle"></i> Ürün Ekle</a></li>
+                    <li><a href="/views/admin/manage-products.html"><i class="fas fa-box"></i> Ürünleri Yönet</a></li>
+                    <li><a href="/views/admin/manage-users.html"><i class="fas fa-users"></i> Kullanıcıları Yönet</a></li>
+                </ul>
+            </nav>
+            <div class="admin-logout">
+                <button id="admin-logout-btn"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+            </div>
+        </div>
+        
+        <div class="admin-content">
+            <div class="admin-header">
+                <h1>Ürün Ekle</h1>
+                <p id="admin-date">Tarih: <span></span></p>
+            </div>
+            
+            <div class="admin-form-container">
+                <form id="add-product-form" class="admin-form">
+                    <div class="form-group">
+                        <label for="product-name">Ürün Adı</label>
+                        <input type="text" id="product-name" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-description">Ürün Açıklaması</label>
+                        <textarea id="product-description" name="description" required></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="product-price">Fiyat (₺)</label>
+                            <input type="number" id="product-price" name="price" min="0" step="0.01" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="product-stock">Stok Adedi</label>
+                            <input type="number" id="product-stock" name="stock" min="0" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="product-category">Kategori</label>
+                            <select id="product-category" name="category" required>
+                                <option value="">Kategori Seçin</option>
+                                <option value="Giyim">Giyim</option>
+                                <option value="Ayakkabı">Ayakkabı</option>
+                                <option value="Aksesuar">Aksesuar</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="product-subcategory">Alt Kategori</label>
+                            <select id="product-subcategory" name="subcategory">
+                                <option value="">Alt Kategori Seçin</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-color">Renk</label>
+                        <input type="text" id="product-color" name="color">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-brand">Marka</label>
+                        <input type="text" id="product-brand" name="brand" value="SmartWear">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="product-featured" name="featured">
+                            Öne Çıkan Ürün
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-images">Ürün Görselleri</label>
+                        <div class="image-upload-container">
+                            <input type="file" id="product-images" name="images" accept="image/*" multiple required>
+                            <div class="image-preview" id="image-preview"></div>
+                        </div>
+                        <small class="help-text">Birden fazla görsel seçebilirsiniz. (En fazla 5 görsel)</small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-save"></i> Ürün Ekle
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="/js/components/components-loader.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Admin erişim kontrolü
+            const userRole = localStorage.getItem('userRole');
+            if (userRole !== 'admin') {
+                window.location.href = '/views/index.html';
+                return;
+            }
+            
+            // Tarih bilgisini güncelle
+            updateDateDisplay();
+            
+            // Kategori değiştiğinde alt kategorileri güncelle
+            const categorySelect = document.getElementById('product-category');
+            const subcategorySelect = document.getElementById('product-subcategory');
+            
+            const subcategories = {
+                'Giyim': ['Tişört', 'Gömlek', 'Pantolon', 'Ceket', 'Elbise', 'Şort', 'Kazak', 'Hırka', 'İç Giyim'],
+                'Ayakkabı': ['Spor Ayakkabı', 'Bot', 'Sandalet', 'Terlik', 'Klasik Ayakkabı', 'Topuklu Ayakkabı'],
+                'Aksesuar': ['Çanta', 'Saat', 'Kemer', 'Şapka', 'Gözlük', 'Takı', 'Cüzdan', 'Çorap']
+            };
+            
+            categorySelect.addEventListener('change', function() {
+                const selectedCategory = this.value;
+                
+                // Alt kategorileri temizle
+                subcategorySelect.innerHTML = '<option value="">Alt Kategori Seçin</option>';
+                
+                // Seçilen kategoriye göre alt kategorileri doldur
+                if (selectedCategory && subcategories[selectedCategory]) {
+                    subcategories[selectedCategory].forEach(subcategory => {
+                        const option = document.createElement('option');
+                        option.value = subcategory;
+                        option.textContent = subcategory;
+                        subcategorySelect.appendChild(option);
+                    });
+                    
+                    subcategorySelect.disabled = false;
+                } else {
+                    subcategorySelect.disabled = true;
+                }
+            });
+            
+            // Form gönderimi
+            const addProductForm = document.getElementById('add-product-form');
+            const imageInput = document.getElementById('product-images');
+            const imagePreview = document.getElementById('image-preview');
+            let selectedFiles = [];
+            
+            // Görsel input kontrolü
+            if (!imageInput) {
+                console.error('product-images ID\'li input bulunamadı!');
+            } else {
+                console.log('Görsel input bulundu:', imageInput);
+            }
+
+            // Görsel önizleme fonksiyonu
+            imageInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                
+                if (files.length > 5) {
+                    alert('En fazla 5 görsel yükleyebilirsiniz!');
+                    imageInput.value = '';
+                    return;
+                }
+
+                selectedFiles = files;
+                console.log('Seçilen dosyalar değişti:', selectedFiles);
+                imagePreview.innerHTML = '';
+
+                files.forEach((file, index) => {
+                    console.log(`Önizleme için dosya ${index + 1}:`, file.name, file.type, file.size);
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const container = document.createElement('div');
+                        container.className = 'preview-image-container';
+
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'preview-image';
+
+                        const removeBtn = document.createElement('div');
+                        removeBtn.className = 'remove-image';
+                        removeBtn.innerHTML = '×';
+                        removeBtn.onclick = () => {
+                            container.remove();
+                            selectedFiles = selectedFiles.filter((_, i) => i !== index);
+                            
+                            // FileList'i güncelle
+                            const dt = new DataTransfer();
+                            selectedFiles.forEach(file => dt.items.add(file));
+                            imageInput.files = dt.files;
+                            console.log('Dosya silindi, kalan dosyalar:', selectedFiles);
+                        };
+
+                        container.appendChild(img);
+                        container.appendChild(removeBtn);
+                        imagePreview.appendChild(container);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+            
+            addProductForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                try {
+                    // Form verilerini kontrol et
+                    const name = document.getElementById('product-name').value.trim();
+                    const description = document.getElementById('product-description').value.trim();
+                    const priceInput = document.getElementById('product-price').value;
+                    const price = parseFloat(priceInput);
+                    const stock = parseInt(document.getElementById('product-stock').value);
+                    const category = document.getElementById('product-category').value;
+                    const subcategory = document.getElementById('product-subcategory').value;
+                    const color = document.getElementById('product-color').value;
+                    const brand = document.getElementById('product-brand').value || 'SmartWear';
+                    const featured = document.getElementById('product-featured').checked;
+                    
+                    // Validasyon
+                    if (!name || !description || isNaN(price) || price <= 0 || isNaN(stock) || stock < 0 || !category) {
+                        alert('Lütfen tüm zorunlu alanları doldurun');
+                        return;
+                    }
+                    
+                    if (selectedFiles.length === 0) {
+                        alert('En az bir ürün görseli eklemelisiniz');
+                        return;
+                    }
+                    
+                    console.log('Seçilen dosyalar:', selectedFiles);
+                    
+                    // Size değeri (Giyim kategorisi için)
+                    let size = '';
+                    if (category === 'Giyim') {
+                        size = 'XS,S,M,L,XL'; // Virgülle ayrılmış string formatında
+                    }
+                    
+                    // FormData oluştur
+                    const formData = new FormData();
+                    
+                    // Form verilerini ekle
+                    formData.append('name', name);
+                    formData.append('description', description);
+                    formData.append('price', price);
+                    formData.append('stock', stock);
+                    formData.append('category', category);
+                    formData.append('subcategory', subcategory || '');
+                    formData.append('color', color || '');
+                    formData.append('brand', brand);
+                    formData.append('featured', featured);
+                    formData.append('size', size);
+                    
+                    // Görselleri ekle
+                    selectedFiles.forEach((file, index) => {
+                        console.log(`Dosya ${index + 1} ekleniyor:`, file.name, file.type, file.size);
+                        formData.append('images', file);
+                    });
+                    
+                    console.log('Gönderilen form verileri:');
+                    for (let [key, value] of formData.entries()) {
+                        if (value instanceof File) {
+                            console.log(`${key}: Dosya - ${value.name} (${value.size} bytes)`);
+                        } else {
+                            console.log(`${key}: ${value}`);
+                        }
+                    }
+                    
+                    // Yükleme işlemi başladığını göster
+                    const submitButton = document.querySelector('.submit-btn');
+                    const originalButtonText = submitButton.innerHTML;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Yükleniyor...';
+                    submitButton.disabled = true;
+                    
+                    console.log('API isteği gönderiliyor...');
+                    
+                    // API'ye istek gönder
+                    const response = await fetch('/api/products', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            // Content-Type header'ı FormData ile otomatik ayarlanacak
+                        },
+                        body: formData
+                    });
+                    
+                    console.log('API yanıtı alındı, durum kodu:', response.status);
+                    
+                    // Yükleme işlemi tamamlandı
+                    submitButton.innerHTML = originalButtonText;
+                    submitButton.disabled = false;
+                    
+                    // Yanıtı kontrol et
+                    if (!response.ok) {
+                        const responseText = await response.text();
+                        console.log('Hata yanıtı:', responseText);
+                        
+                        let errorMessage;
+                        try {
+                            const errorData = JSON.parse(responseText);
+                            errorMessage = errorData.message || 'Bilinmeyen hata';
+                            if (errorData.errors && errorData.errors.length > 0) {
+                                errorMessage += ': ' + errorData.errors.join(', ');
+                            }
+                        } catch (e) {
+                            errorMessage = 'Sunucudan geçersiz yanıt';
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+                    
+                    // Başarılı yanıt
+                    const result = await response.json();
+                    console.log('Başarılı yanıt:', result);
+                    
+                    alert('Ürün başarıyla eklendi!');
+                    
+                    // Formu sıfırla
+                    addProductForm.reset();
+                    imagePreview.innerHTML = '';
+                    selectedFiles = [];
+                    
+                } catch (error) {
+                    console.error('Hata:', error);
+                    alert(`Ürün eklenirken hata oluştu: ${error.message}`);
+                }
+            });
+        });
+        
+        // Tarih bilgisini güncelle
+        function updateDateDisplay() {
+            const dateElement = document.querySelector('#admin-date span');
+            if (dateElement) {
+                const now = new Date();
+                dateElement.textContent = now.toLocaleDateString('tr-TR');
+            }
+        }
+    </script>
+</body>
+</html> 

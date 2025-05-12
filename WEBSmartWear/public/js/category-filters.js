@@ -273,21 +273,49 @@ function displayProducts(products) {
 document.addEventListener('DOMContentLoaded', async () => {
     setupCategoryFilters();
     activateCurrentCategoryLink();
-    
-    // Önce tüm ürünleri getir ve sayıları güncelle
     await loadAllProductsAndUpdateCounts();
-    
+
+    // Fiyat filtresi işlevi
+    const applyPriceFilterBtn = document.getElementById('apply-price-filter');
+    if (applyPriceFilterBtn) {
+        applyPriceFilterBtn.addEventListener('click', async () => {
+            const minPrice = parseFloat(document.getElementById('min-price').value) || 0;
+            const maxPrice = parseFloat(document.getElementById('max-price').value) || Number.MAX_SAFE_INTEGER;
+
+            // Ana kategoriyi belirle (sayfa adından)
+            const currentPath = window.location.pathname;
+            let mainCategory = '';
+            if (currentPath.includes('clothing.html')) {
+                mainCategory = 'Giyim';
+            } else if (currentPath.includes('shoes.html')) {
+                mainCategory = 'Ayakkabı';
+            } else if (currentPath.includes('accessories.html')) {
+                mainCategory = 'Aksesuar';
+            }
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/products/category/${mainCategory}`);
+                if (!response.ok) throw new Error('Ürünler yüklenirken hata oluştu');
+                let products = await response.json();
+                products = products.filter(product => product.price >= minPrice && product.price <= maxPrice);
+                displayProducts(products);
+                updateProductCount(products.length);
+            } catch (error) {
+                showError(error.message);
+            }
+        });
+    }
+
     // URL'den alt kategori parametresini kontrol et
     const urlParams = new URLSearchParams(window.location.search);
     const subcategory = urlParams.get('subcategory');
-    
     if (subcategory) {
         const subcategoryLink = document.querySelector(`.subcategory-link[data-category="${subcategory}"]`);
         if (subcategoryLink) {
             subcategoryLink.click();
         }
     } else {
-        // Alt kategori seçili değilse "Tümü" kategorisini seç
         const allCategoryLink = document.querySelector('.subcategory-link[data-category="Tümü"]');
         if (allCategoryLink) {
             allCategoryLink.click();
