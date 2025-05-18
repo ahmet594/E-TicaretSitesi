@@ -59,6 +59,26 @@ const productSchema = new mongoose.Schema({
         type: String,
         default: 'SmartWear'
     },
+    combinationCode: {
+        type: String,
+        enum: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'],
+        required: true,
+        description: {
+            '1': 'Ayakkabı',
+            '2': 'Pantolon',
+            '3': 'Kemer',
+            '4': 'Basic Tişört',
+            '5': 'Basic Üstüne Giyilebilir',
+            '6': 'Tekli Üst Giyim',
+            '7': 'Ceket/Mont',
+            '8': 'Atkı',
+            '9': 'Şapka',
+            '10': 'Saat',
+            '11': 'Takım',
+            '12': 'Cüzdan',
+            '13': 'Eldiven'
+        }
+    },
     createdAt: {
         type: Date,
         default: Date.now

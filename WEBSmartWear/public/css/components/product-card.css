@@ -283,8 +283,9 @@
 .product-actions {
     padding: 0 1.5rem 1.5rem;
     display: flex;
-    gap: 10px;
-    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
 }
 
 .product-card .favorite-btn {
@@ -322,4 +323,41 @@
 
 .product-card .favorite-btn.active i {
     color: white;
+}
+
+.add-to-outfit-btn {
+    flex: 1;
+    min-width: 130px;
+    max-width: 190px;
+    padding: 0.8rem;
+    background-color: var(--accent-color) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    white-space: nowrap;
+}
+
+.add-to-outfit-btn i {
+    font-size: 0.9rem;
+}
+
+.add-to-outfit-btn:hover {
+    background-color: var(--primary-color) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+.add-to-outfit-btn:active {
+    transform: translateY(0);
 } 

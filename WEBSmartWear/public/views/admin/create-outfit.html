@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kombin Oluştur - Admin Paneli - SmartWear</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        /* Admin paneli için özel stiller */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .admin-container {
+            margin-top: 0;
+            min-height: 100vh;
+            padding: 80px 20px 20px 20px;
+            background-color: var(--admin-content-bg);
+        }
+
+        .admin-content {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .home-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: var(--admin-primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .home-button:hover {
+            background-color: var(--admin-primary-dark);
+        }
+
+        /* Ürün kartları */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .product-details {
+            padding: 12px;
+            padding-bottom: 0;
+        }
+
+        .product-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+            height: 40px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .product-category {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            font-weight: 600;
+            color: var(--admin-primary);
+            font-size: 16px;
+        }
+
+        .product-card .select-btn {
+            position: relative;
+            width: 100%;
+            padding: 10px;
+            background-color: var(--admin-primary);
+            color: white;
+            border: none;
+            border-radius: 0 0 8px 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .product-card .select-btn:hover {
+            background-color: var(--admin-primary-dark);
+        }
+
+        .product-card .select-btn.selected {
+            background-color: #28a745;
+        }
+
+        /* Filtreleme */
+        .filter-controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            display: flex;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            outline: none;
+        }
+
+        .search-box button {
+            padding: 10px 15px;
+            background-color: var(--admin-primary);
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-options select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        /* Tabs */
+        .combo-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .combo-tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            white-space: nowrap;
+        }
+
+        .combo-tab.active {
+            background-color: var(--admin-primary);
+            color: white;
+            border-color: var(--admin-primary);
+        }
+
+        .combo-tab:hover:not(.active) {
+            background-color: #eee;
+        }
+
+        .combo-content {
+            display: none;
+        }
+
+        .combo-content.active {
+            display: block;
+        }
+
+        .no-results {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+
+        .loading {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .error-message {
+            padding: 20px;
+            text-align: center;
+            color: #dc3545;
+            font-size: 16px;
+            background-color: rgba(220, 53, 69, 0.1);
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+
+        /* Seçilen Ürünler Alanı Stilleri */
+        .selected-products-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .selected-products-container h3 {
+            margin: 0 0 15px 0;
+            color: var(--admin-primary);
+        }
+
+        .selected-products-list {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding: 10px 0;
+            min-height: 150px;
+        }
+
+        .selected-product-card {
+            min-width: 120px;
+            max-width: 120px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .selected-product-card img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+        }
+
+        .selected-product-card .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .save-outfit-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: var(--admin-primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .save-outfit-btn:hover {
+            background-color: var(--admin-primary-dark);
+        }
+
+        .selection-indicator {
+            width: 100%;
+            padding: 8px;
+            text-align: center;
+            background-color: #f8f9fa;
+            color: #28a745;
+            font-weight: 600;
+            font-size: 14px;
+            display: none;
+            margin-top: 10px;
+        }
+
+        .product-card.selected .selection-indicator {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <a href="/views/index.html" class="home-button">
+        <i class="fas fa-home"></i> Anasayfaya Dön
+    </a>
+
+    <main class="admin-container">
+        <div class="admin-content">
+            <div class="admin-header">
+                <h1>Kombin Oluştur</h1>
+                <p id="admin-date">Tarih: <span></span></p>
+            </div>
+            
+            <!-- Seçilen Ürünler Alanı -->
+            <div class="selected-products-container">
+                <h3>Seçilen Ürünler</h3>
+                <div class="selected-products-list" id="selected-products-list">
+                    <!-- Seçilen ürünler buraya eklenecek -->
+                </div>
+                <button id="save-outfit-btn" class="save-outfit-btn">Kombini Kaydet</button>
+            </div>
+
+            <div class="filter-controls">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Ürün ara...">
+                    <button id="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+            
+            <!-- Kombin Türü Sekmeleri -->
+            <div class="combo-tabs">
+                <div class="combo-tab active" data-code="1">Ayakkabı</div>
+                <div class="combo-tab" data-code="2">Pantolon</div>
+                <div class="combo-tab" data-code="3">Kemer</div>
+                <div class="combo-tab" data-code="4">Basic Tişört</div>
+                <div class="combo-tab" data-code="5">Basic Üstüne Giyilebilir</div>
+                <div class="combo-tab" data-code="6">Tekli Üst Giyim</div>
+                <div class="combo-tab" data-code="7">Ceket/Mont</div>
+                <div class="combo-tab" data-code="8">Atkı</div>
+                <div class="combo-tab" data-code="9">Şapka</div>
+                <div class="combo-tab" data-code="10">Saat</div>
+                <div class="combo-tab" data-code="11">Takım</div>
+                <div class="combo-tab" data-code="12">Cüzdan</div>
+                <div class="combo-tab" data-code="13">Eldiven</div>
+            </div>
+            
+            <!-- Kombin İçerikleri -->
+            <div class="combo-contents">
+                <div class="combo-content active" id="combo-content-1">
+                    <div class="products-grid" id="products-container-1">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+                <div class="combo-content" id="combo-content-2">
+                    <div class="products-grid" id="products-container-2">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+                <div class="combo-content" id="combo-content-3">
+                    <div class="products-grid" id="products-container-3">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+                <div class="combo-content" id="combo-content-4">
+                    <div class="products-grid" id="products-container-4">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+                <div class="combo-content" id="combo-content-5">
+                    <div class="products-grid" id="products-container-5">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+                <div class="combo-content" id="combo-content-6">
+                    <div class="products-grid" id="products-container-6">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+                <div class="combo-content" id="combo-content-7">
+                    <div class="products-grid" id="products-container-7">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+                <div class="combo-content" id="combo-content-8">
+                    <div class="products-grid" id="products-container-8">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+                <div class="combo-content" id="combo-content-9">
+                    <div class="products-grid" id="products-container-9">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+                <div class="combo-content" id="combo-content-10">
+                    <div class="products-grid" id="products-container-10">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+                <div class="combo-content" id="combo-content-11">
+                    <div class="products-grid" id="products-container-11">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+                <div class="combo-content" id="combo-content-12">
+                    <div class="products-grid" id="products-container-12">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+                <div class="combo-content" id="combo-content-13">
+                    <div class="products-grid" id="products-container-13">
+                        <div class="loading">Ürünler yükleniyor...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Tarih bilgisini güncelle
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tarih gösterimini ayarla
+            const today = new Date();
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            document.querySelector('#admin-date span').textContent = today.toLocaleDateString('tr-TR', options);
+            
+            // Token kontrolü ve sayfa erişimi
+            const token = localStorage.getItem('token');
+            const userRole = localStorage.getItem('userRole');
+            
+            if (!token || userRole !== 'admin') {
+                alert('Bu sayfaya erişim izniniz bulunmamaktadır.');
+                window.location.href = '/views/login.html';
+                return;
+            }
+
+            // Sekme değiştirme işlemlerini ayarla
+            setupTabs();
+            
+            // İlk sekmeye ait ürünleri yükle
+            loadProductsByCombinationCode(1);
+
+            // Event listener'ları ekle
+            setupEventListeners();
+        });
+
+        // Sekme değiştirme işlemleri
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.combo-tab');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Önceki aktif sekmeyi kaldır
+                    document.querySelector('.combo-tab.active').classList.remove('active');
+                    document.querySelector('.combo-content.active').classList.remove('active');
+                    
+                    // Yeni sekmeyi aktif yap
+                    this.classList.add('active');
+                    const combinationCode = this.dataset.code;
+                    document.getElementById(`combo-content-${combinationCode}`).classList.add('active');
+                    
+                    // Bu sekmeye ait ürünleri yükle
+                    loadProductsByCombinationCode(combinationCode);
+                });
+            });
+        }
+
+        // CombinationCode'a göre ürünleri API'den getir
+        async function loadProductsByCombinationCode(combinationCode) {
+            try {
+                const container = document.getElementById(`products-container-${combinationCode}`);
+                
+                // Daha önce yüklenmişse tekrar yükleme
+                if (!container.querySelector('.loading')) return;
+                
+                container.innerHTML = '<div class="loading">Ürünler yükleniyor...</div>';
+                
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/products?combinationCode=${combinationCode}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ürünler yüklenemedi');
+                }
+
+                const { products } = await response.json();
+                displayProducts(products || [], combinationCode);
+            } catch (error) {
+                console.error(`CombinationCode ${combinationCode} ürünleri yükleme hatası:`, error);
+                document.getElementById(`products-container-${combinationCode}`).innerHTML = `
+                    <div class="error-message">Ürünler yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.</div>
+                `;
+            }
+        }
+
+        // Seçilen ürünleri takip etmek için global bir dizi
+        let selectedProducts = [];
+
+        // Ürünleri görüntüle
+        function displayProducts(products, combinationCode) {
+            const container = document.getElementById(`products-container-${combinationCode}`);
+            
+            if (products.length === 0) {
+                container.innerHTML = '<div class="no-results">Bu kategoride ürün bulunamadı</div>';
+                return;
+            }
+
+            container.innerHTML = products.map(product => `
+                <div class="product-card" data-id="${product._id}" data-name="${product.name}" data-price="${product.price}">
+                    <img src="${product.image || product.imagePath || '/images/products/default.jpg'}" alt="${product.name}" class="product-image">
+                    <div class="product-details">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-category">${product.category}${product.subcategory ? ' > ' + product.subcategory : ''}</div>
+                        <div class="product-price">${product.price ? product.price.toFixed(2) + ' ₺' : 'Fiyat Belirtilmemiş'}</div>
+                    </div>
+                    <div class="selection-indicator">
+                        <i class="fas fa-check"></i> Seçildi
+                    </div>
+                </div>
+            `).join('');
+
+            // Ürün kartlarına tıklama event listener'ı ekle
+            container.querySelectorAll('.product-card').forEach(card => {
+                const productId = card.dataset.id;
+                // Başlangıçta seçili mi kontrol et
+                if (selectedProducts.some(p => p.id === productId)) {
+                    card.classList.add('selected');
+                }
+
+                card.addEventListener('click', function() {
+                    const productName = this.dataset.name;
+                    const productImage = this.querySelector('img').src;
+
+                    // Ürün zaten seçili mi kontrol et
+                    const isSelected = selectedProducts.some(p => p.id === productId);
+
+                    if (isSelected) {
+                        // Ürünü seçimden kaldır
+                        this.classList.remove('selected');
+                        removeFromSelectedProducts(productId);
+                    } else {
+                        // Ürünü seç
+                        this.classList.add('selected');
+                        addToSelectedProducts({
+                            id: productId,
+                            name: productName,
+                            image: productImage
+                        });
+                    }
+                });
+            });
+        }
+
+        // Seçilen ürünleri listeye ekle
+        function addToSelectedProducts(product) {
+            if (!selectedProducts.find(p => p.id === product.id)) {
+                selectedProducts.push(product);
+                updateSelectedProductsList();
+            }
+        }
+
+        // Seçilen ürünleri listeden kaldır
+        function removeFromSelectedProducts(productId) {
+            selectedProducts = selectedProducts.filter(p => p.id !== productId);
+            updateSelectedProductsList();
+            
+            // Ürün kartındaki seçili durumunu kaldır
+            const productCard = document.querySelector(`.product-card[data-id="${productId}"]`);
+            if (productCard) {
+                productCard.classList.remove('selected');
+            }
+        }
+
+        // Seçilen ürünler listesini güncelle
+        function updateSelectedProductsList() {
+            const container = document.getElementById('selected-products-list');
+            container.innerHTML = selectedProducts.map(product => `
+                <div class="selected-product-card" data-id="${product.id}">
+                    <img src="${product.image}" alt="${product.name}">
+                    <button class="remove-btn" onclick="event.stopPropagation(); removeFromSelectedProducts('${product.id}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Kombini kaydet
+        async function saveOutfit() {
+            if (selectedProducts.length === 0) {
+                alert('Lütfen en az bir ürün seçin.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/outfits', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productIds: selectedProducts.map(p => p.id)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Kombin kaydedilemedi');
+                }
+
+                alert('Kombin başarıyla kaydedildi!');
+                selectedProducts = [];
+                updateSelectedProductsList();
+                
+                // Tüm seçili butonları sıfırla
+                document.querySelectorAll('.select-btn.selected').forEach(btn => {
+                    btn.classList.remove('selected');
+                    btn.textContent = 'Seç';
+                });
+            } catch (error) {
+                console.error('Kombin kaydetme hatası:', error);
+                alert('Kombin kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.');
+            }
+        }
+
+        // Event listener'ları ayarla
+        function setupEventListeners() {
+            // Arama işlemi
+            document.getElementById('search-btn').addEventListener('click', searchProducts);
+            document.getElementById('search-input').addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    searchProducts();
+                }
+            });
+
+            // Kombini kaydetme butonu
+            document.getElementById('save-outfit-btn').addEventListener('click', saveOutfit);
+        }
+
+        // Ürün arama
+        function searchProducts() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const activeTab = document.querySelector('.combo-tab.active').dataset.code;
+            const productCards = document.querySelectorAll(`#products-container-${activeTab} .product-card`);
+            
+            productCards.forEach(card => {
+                const productName = card.dataset.name.toLowerCase();
+                if (productName.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html> 

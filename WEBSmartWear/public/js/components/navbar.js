@@ -414,10 +414,36 @@ function updateNavbarAuthUI() {
             const profileLink = link.querySelector('.user-profile-btn');
             if (profileLink) {
                 if (userRole === 'admin') {
-                    profileLink.href = '/views/admin/dashboard.html';
-                    if (profileLink.querySelector('.user-name')) {
-                        profileLink.querySelector('.user-name').textContent = 'Admin Panel';
-                    }
+                    // Admin için özel dropdown menü
+                    const adminDropdown = document.createElement('div');
+                    adminDropdown.className = 'dropdown';
+                    adminDropdown.innerHTML = `
+                        <a href="#" class="user-profile-btn">
+                            <i class="fas fa-user-shield"></i>
+                            <span class="user-name">Admin İşlemleri</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="/views/admin/add-product.html"><i class="fas fa-plus-circle"></i> Ürün Ekle</a>
+                            <a href="/views/admin/manage-products.html"><i class="fas fa-box"></i> Ürünleri Yönet</a>
+                            <a href="/views/admin/create-outfit.html"><i class="fas fa-tshirt"></i> Kombin Oluştur</a>
+                            <a href="#" id="admin-logout-link"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</a>
+                        </div>
+                    `;
+                    
+                    // Mevcut profil linkini dropdown ile değiştir
+                    profileLink.parentNode.replaceChild(adminDropdown, profileLink);
+                    
+                    // Çıkış yapma işlevini ekle
+                    const logoutLink = adminDropdown.querySelector('#admin-logout-link');
+                    logoutLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('userId');
+                        localStorage.removeItem('userName');
+                        localStorage.removeItem('userRole');
+                        window.location.href = '/views/index.html';
+                    });
                 } else {
                     profileLink.href = '/views/profile.html';
                     if (profileLink.querySelector('.user-name')) {

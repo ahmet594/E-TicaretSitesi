@@ -71,7 +71,7 @@
                     <div class="profile-tab" id="orders-tab">
                         <h3>Siparişlerim</h3>
                         <div id="orders-list" class="orders-list">
-                            <p class="empty-state">Henüz siparişiniz bulunmamaktadır.</p>
+                            <!-- Siparişler buraya yüklenecek -->
                         </div>
                     </div>
                     
@@ -168,5 +168,90 @@
     </script>
     <script src="../js/auth.js"></script>
     <script src="../js/profile.js"></script>
+    <script>
+        // Profil menüsü işlemleri
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab değiştirme işlevi
+            const tabButtons = document.querySelectorAll('.profile-nav-item');
+            const tabs = document.querySelectorAll('.profile-tab');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabName = this.dataset.tab;
+                    
+                    // Aktif tab'ı değiştir
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabs.forEach(tab => tab.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    document.getElementById(`${tabName}-tab`).classList.add('active');
+
+                    // Eğer siparişler tab'ına tıklandıysa siparişleri yükle
+                    if (tabName === 'orders') {
+                        loadOrders();
+                    }
+                });
+            });
+
+            // URL'de #orders varsa siparişler tabını aç
+            if (window.location.hash === '#orders') {
+                const ordersTab = document.querySelector('[data-tab="orders"]');
+                if (ordersTab) {
+                    ordersTab.click();
+                }
+            }
+
+            // Siparişleri yükle ve göster
+            function loadOrders() {
+                const ordersList = document.getElementById('orders-list');
+                const orders = JSON.parse(localStorage.getItem('orders')) || [];
+
+                if (orders.length === 0) {
+                    ordersList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <p>Henüz siparişiniz bulunmamaktadır.</p>
+                            <a href="/views/index.html" class="btn">Alışverişe Başla</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Siparişleri tarihe göre sırala (en yeniden en eskiye)
+                orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                ordersList.innerHTML = orders.map(order => `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <span class="order-id">${order.id}</span>
+                            <span class="order-date">${new Date(order.date).toLocaleDateString('tr-TR')}</span>
+                            <span class="order-status">${order.status}</span>
+                        </div>
+                        <div class="order-items">
+                            ${order.items.map(item => `
+                                <div class="order-item">
+                                    <img src="${item.image}" alt="${item.name}" class="item-image" onerror="this.src='../img/product-placeholder.jpg'">
+                                    <div class="item-details">
+                                        <div class="item-name">${item.name}</div>
+                                        <div class="item-price">${item.price.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}</div>
+                                        <div class="item-quantity">Adet: ${item.quantity}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="order-total">
+                            Toplam: ${order.total.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Çıkış yapma işlemi
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                localStorage.removeItem('token');
+                window.location.href = '/views/login.html';
+            });
+        });
+    </script>
 </body>
 </html> 

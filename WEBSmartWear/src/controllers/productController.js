@@ -21,8 +21,16 @@ const SubcategoryLookup = {
 // Tüm ürünleri getir
 exports.getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find();
-        res.json(products);
+        const { combinationCode } = req.query;
+        let query = {};
+        
+        // Eğer combinationCode parametresi varsa, filtreye ekle
+        if (combinationCode) {
+            query.combinationCode = combinationCode;
+        }
+        
+        const products = await Product.find(query);
+        res.json({ products }); // products array'ini bir obje içinde gönder
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -198,16 +206,21 @@ exports.updateProduct = async (req, res) => {
         console.log('Güncelleme verileri:', req.body);
         console.log('Yüklenen görseller:', req.files);
         
-        // Ürün verilerini al
-        const productData = { ...req.body };
+        // Mevcut ürünü bul
+        const existingProduct = await Product.findById(req.params.id);
+        if (!existingProduct) {
+            return res.status(404).json({ message: 'Güncellenecek ürün bulunamadı' });
+        }
+
+        // Ürün verilerini al ve subcategory değerini koru
+        const productData = { 
+            ...req.body,
+            subcategory: req.body.subcategory || existingProduct.subcategory // Eğer yeni subcategory gönderilmemişse mevcut değeri koru
+        };
         
         // Yüklenen görselleri kontrol et
         if (req.files && req.files.length > 0) {
-            // İlk görseli ana görsel olarak kullan
             productData.image = `/images/products/${req.files[0].filename}`;
-            
-            // Diğer görseller için ek işlemler yapılabilir
-            // Örneğin: productData.additionalImages = req.files.slice(1).map(file => `/images/products/${file.filename}`);
         }
         
         const updatedProduct = await Product.findByIdAndUpdate(
@@ -216,32 +229,8 @@ exports.updateProduct = async (req, res) => {
             { new: true, runValidators: true }
         );
         
-        if (!updatedProduct) {
-            return res.status(404).json({ message: 'Güncellenecek ürün bulunamadı' });
-        }
-        
         res.json(updatedProduct);
     } catch (error) {
-        // Hata durumunda yüklenen görselleri temizle
-        if (req.files && req.files.length > 0) {
-            req.files.forEach(file => {
-                fs.unlink(file.path, (err) => {
-                    if (err) console.error('Görsel silinirken hata:', err);
-                });
-            });
-        }
-        
-        // ID format hatası kontrolü
-        if (error instanceof mongoose.Error.CastError) {
-            return res.status(400).json({ message: 'Geçersiz ürün ID formatı' });
-        }
-        
-        // Validasyon hatası kontrolü
-        if (error.name === 'ValidationError') {
-            const validationErrors = Object.values(error.errors).map(err => err.message);
-            return res.status(400).json({ message: 'Validasyon hatası', errors: validationErrors });
-        }
-        
         res.status(500).json({ message: error.message });
     }
 };

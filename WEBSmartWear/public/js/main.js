@@ -563,3 +563,76 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, 500); // Diğer scriptlerden sonra çalışması için bir miktar beklet
 });
+
+// Listeden sepete ekleme fonksiyonu
+function addToCartFromListing(productId, name, price, image) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    // Sepette aynı üründen var mı kontrol et
+    const existingItem = cart.find(item => item.productId === productId);
+    
+    if (existingItem) {
+        existingItem.quantity += 1;
+        showNotification('Ürün miktarı sepette güncellendi', 'success');
+    } else {
+        cart.push({
+            productId: productId,
+            name: name,
+            price: price,
+            image: image,
+            quantity: 1
+        });
+        showNotification('Ürün sepete eklendi', 'success');
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // Sepet sayısını güncelle
+    if (typeof updateCartCount === 'function') {
+        updateCartCount();
+    }
+}
+
+// Favorilere ekleme/çıkarma fonksiyonu
+function toggleFavorite(productId) {
+    let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    const index = favorites.indexOf(productId);
+    
+    if (index === -1) {
+        // Favorilere ekle
+        favorites.push(productId);
+        showNotification('Ürün favorilere eklendi', 'success');
+    } else {
+        // Favorilerden çıkar
+        favorites.splice(index, 1);
+        showNotification('Ürün favorilerden çıkarıldı', 'info');
+    }
+    
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    
+    // Favori butonlarını güncelle
+    checkFavorites();
+}
+
+// Favorileri kontrol et ve işaretle
+function checkFavorites() {
+    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
+    
+    favoriteButtons.forEach(button => {
+        const onclickAttr = button.getAttribute('onclick');
+        if (onclickAttr) {
+            const match = onclickAttr.match(/toggleFavorite\(['"]([^'"]+)['"]\)/);
+            if (match && match[1]) {
+                const productId = match[1];
+                if (favorites.includes(productId)) {
+                    button.innerHTML = '<i class="fas fa-heart"></i>';
+                    button.classList.add('active');
+                } else {
+                    button.innerHTML = '<i class="far fa-heart"></i>';
+                    button.classList.remove('active');
+                }
+            }
+        }
+    });
+}

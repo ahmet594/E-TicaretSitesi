@@ -8,6 +8,7 @@ require('dotenv').config();
 const connectDB = require('./src/config/db');
 const productRoutes = require('./src/routes/productRoutes');
 const authRoutes = require('./src/routes/authRoutes');
+const outfitRoutes = require('./src/routes/outfitRoutes');
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Routes
 app.use('/api/products', productRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/outfits', outfitRoutes);
 
 // API durum kontrolü
 app.get('/api/status', (req, res) => {

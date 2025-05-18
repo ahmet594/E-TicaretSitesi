@@ -379,4 +379,37 @@ function setupEventListeners() {
     if (addToFavoritesBtn) {
         addToFavoritesBtn.addEventListener('click', toggleFavorite);
     }
+
+    // Kombinle butonu için event listener
+    document.getElementById('add-to-outfit').addEventListener('click', () => {
+        // Mevcut ürün bilgilerini al
+        const currentProduct = {
+            id: new URLSearchParams(window.location.search).get('id'), // URL'den ürün ID'sini al
+            name: document.getElementById('product-name').textContent,
+            price: document.getElementById('product-price').textContent,
+            image: document.getElementById('product-image').src,
+            category: document.getElementById('product-category').textContent.replace('Kategori: ', '') // "Kategori: " prefix'ini kaldır
+        };
+
+        // LocalStorage'dan mevcut kombin ürünlerini al
+        const outfitProducts = JSON.parse(localStorage.getItem('outfitProducts') || '[]');
+        
+        // Ürün zaten kombinde var mı kontrol et
+        if (!outfitProducts.some(product => product.id === currentProduct.id)) {
+            // Ürünü kombine ekle
+            outfitProducts.push(currentProduct);
+            localStorage.setItem('outfitProducts', JSON.stringify(outfitProducts));
+            
+            // Başarılı bildirim göster
+            showNotification('Ürün kombine eklendi', 'success');
+            
+            // Kombin sayfasına yönlendir
+            setTimeout(() => {
+                window.location.href = '/views/outfit.html';
+            }, 1500);
+        } else {
+            // Uyarı bildirim göster
+            showNotification('Bu ürün zaten kombinde mevcut', 'warning');
+        }
+    });
 } 

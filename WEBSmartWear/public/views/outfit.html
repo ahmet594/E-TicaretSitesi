@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kombin Yap | SmartWear</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components/navbar.css">
+    <link rel="stylesheet" href="/css/components/outfit.css">
+    <link rel="stylesheet" href="/css/components/footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Global bağımlılıklar -->
+    <script src="/js/dependencies.js"></script>
+</head>
+<body>
+    <!-- Navbar will be loaded here -->
+    <div id="navbar-container"></div>
+
+    <!-- Outfit Builder Section -->
+    <section class="outfit-builder">
+        <div class="container">
+            <h1 class="section-title">Kombin Oluştur</h1>
+            
+            <!-- Seçili Ürünler -->
+            <div class="selected-products">
+                <h3>Seçili Ürünler</h3>
+                <div id="selected-products-list" class="selected-products-list">
+                    <!-- Seçili ürünler buraya dinamik olarak eklenecek -->
+                </div>
+            </div>
+
+            <!-- Ürün Önerileri -->
+            <div class="product-suggestions">
+                <h3>Önerilen Ürünler</h3>
+                <div id="suggested-products" class="products-grid">
+                    <!-- Önerilen ürünler buraya dinamik olarak eklenecek -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer will be loaded here -->
+    <div id="footer-container"></div>
+
+    <!-- Scripts -->
+    <script src="/js/components/navbar.js"></script>
+    <script src="/js/outfit.js"></script>
+    <script>
+        // Load navbar and footer
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load navbar
+            fetch('/components/navbar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('navbar-container').innerHTML = data;
+                    if (typeof updateNavbarAuthUI === 'function') {
+                        updateNavbarAuthUI();
+                    }
+                });
+
+            // Load footer
+            fetch('/components/footer.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('footer-container').innerHTML = data;
+                });
+        });
+    </script>
+</body>
+</html> 

@@ -501,13 +501,13 @@
                                 </a>
                             </li>
                             <li class="subcategory-item">
-                                <a href="#" class="subcategory-link" data-category="t-Shirt">
+                                <a href="#" class="subcategory-link" data-category="t-shirt">
                                     T-Shirt
                                     <span class="subcategory-count"></span>
                                 </a>
                             </li>
                             <li class="subcategory-item">
-                                <a href="#" class="subcategory-link" data-category="gömlek">
+                                <a href="#" class="subcategory-link" data-category="gomlek">
                                     Gömlek
                                     <span class="subcategory-count"></span>
                                 </a>
@@ -519,7 +519,7 @@
                                 </a>
                             </li>
                             <li class="subcategory-item">
-                                <a href="#" class="subcategory-link" data-category="hırka">
+                                <a href="#" class="subcategory-link" data-category="hirka">
                                     Hırka
                                     <span class="subcategory-count"></span>
                                 </a>
@@ -555,25 +555,25 @@
                                 </a>
                             </li>
                             <li class="subcategory-item">
-                                <a href="#" class="subcategory-link" data-category="kumaş-pantolon">
+                                <a href="#" class="subcategory-link" data-category="kumas-pantolon">
                                     Kumaş Pantolon
                                     <span class="subcategory-count"></span>
                                 </a>
                             </li>
                             <li class="subcategory-item">
-                                <a href="#" class="subcategory-link" data-category="şortlar">
+                                <a href="#" class="subcategory-link" data-category="sortlar">
                                     Şortlar
                                     <span class="subcategory-count"></span>
                                 </a>
                             </li>
                             <li class="subcategory-item">
-                                <a href="#" class="subcategory-link" data-category="takım-elbise">
+                                <a href="#" class="subcategory-link" data-category="takim-elbise">
                                     Takım Elbise
                                     <span class="subcategory-count"></span>
                                 </a>
                             </li>
                             <li class="subcategory-item">
-                                <a href="#" class="subcategory-link" data-category="eşofman">
+                                <a href="#" class="subcategory-link" data-category="esofman">
                                     Eşofman
                                     <span class="subcategory-count"></span>
                                 </a>
@@ -664,11 +664,8 @@
                 .then(data => {
                     document.getElementById('navbar-container').innerHTML = data;
                     
-                    // Navbar yüklenir yüklenmez hemen auth kontrolünü yap
-                    // Timeout kullanmak yerine direkt çağıralım
-                    if (typeof updateAuthUI === 'function') {
-                        updateAuthUI();
-                    } else if (typeof updateNavbarAuthUI === 'function') {
+                    // Hemen updateNavbarAuthUI fonksiyonunu çağır
+                    if (typeof updateNavbarAuthUI === 'function') {
                         updateNavbarAuthUI();
                     }
                     

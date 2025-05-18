@@ -517,12 +517,6 @@
                                 </a>
                             </li>
                             <li class="subcategory-item">
-                                <a href="#" class="subcategory-link" data-category="kravat">
-                                    Kravat
-                                    <span class="subcategory-count"></span>
-                                </a>
-                            </li>
-                            <li class="subcategory-item">
                                 <a href="#" class="subcategory-link" data-category="sapka">
                                     Şapka
                                     <span class="subcategory-count"></span>
@@ -626,11 +620,8 @@
                 .then(data => {
                     document.getElementById('navbar-container').innerHTML = data;
                     
-                    // Navbar yüklenir yüklenmez hemen auth kontrolünü yap
-                    // Timeout kullanmak yerine direkt çağıralım
-                    if (typeof updateAuthUI === 'function') {
-                        updateAuthUI();
-                    } else if (typeof updateNavbarAuthUI === 'function') {
+                    // Hemen updateNavbarAuthUI fonksiyonunu çağır
+                    if (typeof updateNavbarAuthUI === 'function') {
                         updateNavbarAuthUI();
                     }
                     

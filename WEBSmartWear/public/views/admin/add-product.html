@@ -8,6 +8,54 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/admin.css">
     <style>
+        /* Admin paneli için özel stiller */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .admin-container {
+            margin-top: 0;
+            min-height: 100vh;
+            padding: 80px 20px 20px 20px;
+            background-color: var(--admin-content-bg);
+        }
+
+        .admin-content {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .home-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: var(--admin-primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .home-button:hover {
+            background-color: var(--admin-primary-dark);
+        }
+
+        /* Mevcut image-upload stilleri */
         .image-upload-container {
             border: 2px dashed #ccc;
             padding: 20px;
@@ -57,27 +105,11 @@
     </style>
 </head>
 <body>
-    <div id="navbar-container"></div>
+    <a href="/views/index.html" class="home-button">
+        <i class="fas fa-home"></i> Anasayfaya Dön
+    </a>
 
     <main class="admin-container">
-        <div class="admin-sidebar">
-            <div class="admin-profile">
-                <i class="fas fa-user-shield"></i>
-                <h3>Admin Paneli</h3>
-            </div>
-            <nav class="admin-nav">
-                <ul>
-                    <li><a href="/views/admin/dashboard.html"><i class="fas fa-tachometer-alt"></i> Ana Panel</a></li>
-                    <li class="active"><a href="/views/admin/add-product.html"><i class="fas fa-plus-circle"></i> Ürün Ekle</a></li>
-                    <li><a href="/views/admin/manage-products.html"><i class="fas fa-box"></i> Ürünleri Yönet</a></li>
-                    <li><a href="/views/admin/manage-users.html"><i class="fas fa-users"></i> Kullanıcıları Yönet</a></li>
-                </ul>
-            </nav>
-            <div class="admin-logout">
-                <button id="admin-logout-btn"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
-            </div>
-        </div>
-        
         <div class="admin-content">
             <div class="admin-header">
                 <h1>Ürün Ekle</h1>
@@ -138,6 +170,11 @@
                     </div>
                     
                     <div class="form-group">
+                        <label for="product-combination">Kombin Kodu</label>
+                        <input type="text" id="product-combination" name="combinationCode">
+                    </div>
+                    
+                    <div class="form-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="product-featured" name="featured">
                             Öne Çıkan Ürün
@@ -163,11 +200,8 @@
         </div>
     </main>
 
-    <div id="footer-container"></div>
-
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="/js/components/components-loader.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/admin.js"></script>
     <script>

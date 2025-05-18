@@ -77,7 +77,7 @@
                         <span>Toplam:</span>
                         <span id="total">0.00 TL</span>
                     </div>
-                    <button class="checkout-btn" id="checkout-btn">Ödeme Yap</button>
+                    <button class="checkout-btn" id="checkout-btn">Sipariş Ver</button>
                     <div class="continue-shopping">
                         <a href="/views/index.html">Alışverişe Devam Et</a>
                     </div>
@@ -117,7 +117,54 @@
     <script>
         // Ödeme düğmesine tıklanınca
         document.getElementById('checkout-btn').addEventListener('click', function() {
-            alert('Ödeme işlemi şu anda geliştirme aşamasındadır.');
+            // Mevcut sepet içeriğini al
+            const currentCart = JSON.parse(localStorage.getItem('cart')) || [];
+            
+            // Eğer sepet boşsa işlem yapma
+            if (currentCart.length === 0) {
+                alert('Sepetiniz boş!');
+                return;
+            }
+
+            // Siparişler için tarih oluştur
+            const orderDate = new Date().toISOString();
+            
+            // Siparişi oluştur
+            const order = {
+                id: 'ORD-' + Date.now(),
+                items: currentCart,
+                date: orderDate,
+                status: 'Hazırlanıyor',
+                total: currentCart.reduce((total, item) => total + (item.price * item.quantity), 0)
+            };
+            
+            // Mevcut siparişleri al
+            const existingOrders = JSON.parse(localStorage.getItem('orders')) || [];
+            
+            // Yeni siparişi ekle
+            existingOrders.push(order);
+            
+            // Siparişleri kaydet
+            localStorage.setItem('orders', JSON.stringify(existingOrders));
+            
+            // Sepeti temizle
+            localStorage.setItem('cart', '[]');
+            
+            // Sepet sayısını güncelle
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
+
+            // Başarılı mesajı göster
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = 'Siparişiniz başarıyla oluşturuldu!';
+            document.getElementById('notification-container').appendChild(notification);
+            
+            // 1 saniye sonra sayfayı yenile
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         });
         
         // Sayfa yüklendiğinde sepetteki hatalı ürünleri düzelt
