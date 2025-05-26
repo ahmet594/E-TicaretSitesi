@@ -382,22 +382,36 @@ function setupEventListeners() {
 
     // Kombinle butonu için event listener
     document.getElementById('add-to-outfit').addEventListener('click', () => {
+        if (!currentProduct) {
+            showNotification('Ürün bilgileri yüklenemedi', 'error');
+            return;
+        }
+
         // Mevcut ürün bilgilerini al
-        const currentProduct = {
-            id: new URLSearchParams(window.location.search).get('id'), // URL'den ürün ID'sini al
-            name: document.getElementById('product-name').textContent,
-            price: document.getElementById('product-price').textContent,
-            image: document.getElementById('product-image').src,
-            category: document.getElementById('product-category').textContent.replace('Kategori: ', '') // "Kategori: " prefix'ini kaldır
+        const outfitProduct = {
+            id: currentProduct._id,
+            name: currentProduct.name,
+            price: currentProduct.price,
+            image: currentProduct.image || currentProduct.imagePath || document.getElementById('product-image').src,
+            category: currentProduct.category,
+            combinationCode: currentProduct.combinationCode
         };
+
+        console.log('Kombine eklenecek ürün:', outfitProduct); // Debug için
 
         // LocalStorage'dan mevcut kombin ürünlerini al
         const outfitProducts = JSON.parse(localStorage.getItem('outfitProducts') || '[]');
         
         // Ürün zaten kombinde var mı kontrol et
-        if (!outfitProducts.some(product => product.id === currentProduct.id)) {
+        if (!outfitProducts.some(product => product.id === outfitProduct.id)) {
+            // Aynı kombinasyon koduna sahip başka bir ürün var mı kontrol et
+            if (outfitProduct.combinationCode && outfitProducts.some(p => p.combinationCode === outfitProduct.combinationCode)) {
+                showNotification('Bu türde bir ürün zaten seçilmiş', 'warning');
+                return;
+            }
+            
             // Ürünü kombine ekle
-            outfitProducts.push(currentProduct);
+            outfitProducts.push(outfitProduct);
             localStorage.setItem('outfitProducts', JSON.stringify(outfitProducts));
             
             // Başarılı bildirim göster

@@ -642,14 +642,6 @@
                 }
 
                 alert('Kombin başarıyla kaydedildi!');
-                selectedProducts = [];
-                updateSelectedProductsList();
-                
-                // Tüm seçili butonları sıfırla
-                document.querySelectorAll('.select-btn.selected').forEach(btn => {
-                    btn.classList.remove('selected');
-                    btn.textContent = 'Seç';
-                });
             } catch (error) {
                 console.error('Kombin kaydetme hatası:', error);
                 alert('Kombin kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.');

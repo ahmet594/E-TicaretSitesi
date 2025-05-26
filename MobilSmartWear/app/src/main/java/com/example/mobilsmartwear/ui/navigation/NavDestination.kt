@@ -15,6 +15,7 @@ sealed class NavDestination(val route: String) {
     object Search : NavDestination("search")
     object Cart : NavDestination("cart")
     object Combination : NavDestination("combination")
+    object Chat : NavDestination("chat")
     object Profile : NavDestination("profile")
     object Favorites : NavDestination("favorites")
     

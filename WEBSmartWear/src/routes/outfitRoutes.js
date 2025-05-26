@@ -2,48 +2,35 @@ const express = require('express');
 const router = express.Router();
 const Outfit = require('../models/Outfit');
 
+// Tüm kombinleri getir
+router.get('/', async (req, res) => {
+    try {
+        const outfits = await Outfit.find().sort({ createdAt: -1 }); // En yeni kombinleri önce getir
+        res.json(outfits);
+    } catch (error) {
+        console.error('Kombinleri getirme hatası:', error);
+        res.status(500).json({ error: 'Kombinler getirilemedi' });
+    }
+});
+
 // Yeni kombin oluştur
 router.post('/', async (req, res) => {
     try {
         const { productIds } = req.body;
         
         if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
-            return res.status(400).json({ message: 'Geçerli ürün ID\'leri gerekli' });
+            return res.status(400).json({ error: 'Geçersiz ürün ID\'leri' });
         }
-
-        // ID'lerin geçerli MongoDB ObjectId formatında olduğunu kontrol et
-        const isValidIds = productIds.every(id => id.match(/^[0-9a-fA-F]{24}$/));
-        if (!isValidIds) {
-            return res.status(400).json({ message: 'Geçersiz ürün ID formatı' });
-        }
-
-        console.log('Kaydedilecek ürün ID\'leri:', productIds); // Debug log
 
         const outfit = new Outfit({
-            productIds: productIds
+            productIds,
+            createdAt: new Date()
         });
 
-        const savedOutfit = await outfit.save();
-        console.log('Kaydedilen kombin:', savedOutfit); // Debug log
-
-        res.status(201).json(savedOutfit);
+        await outfit.save();
+        res.status(201).json(outfit);
     } catch (error) {
-        console.error('Kombin kaydetme hatası:', error); // Debug log
-        res.status(500).json({ 
-            message: 'Kombin kaydedilirken bir hata oluştu',
-            error: error.message 
-        });
-    }
-});
-
-// Tüm kombinleri getir
-router.get('/', async (req, res) => {
-    try {
-        const outfits = await Outfit.find().populate('productIds');
-        res.json(outfits);
-    } catch (error) {
-        console.error('Kombinleri getirme hatası:', error); // Debug log
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ error: 'Kombin oluşturulamadı' });
     }
 });
 

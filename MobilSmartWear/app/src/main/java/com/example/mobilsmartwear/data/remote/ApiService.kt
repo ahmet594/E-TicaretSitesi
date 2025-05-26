@@ -20,62 +20,62 @@ import retrofit2.http.Query
 interface ApiService {
     
     // Tüm ürünleri getir
-    @GET("api/products")
+    @GET("products")
     suspend fun getProducts(): Response<List<Product>>
     
     // Öne çıkan ürünleri getir
-    @GET("api/products/featured")
+    @GET("products/featured")
     suspend fun getFeaturedProducts(): Response<List<Product>>
     
     // ID'ye göre ürün detayı getir
-    @GET("api/products/{id}")
+    @GET("products/{id}")
     suspend fun getProductById(@Path("id") id: String): Response<Product>
     
     // Kategori filtrelemesi
-    @GET("api/products/category/{category}")
+    @GET("products/category/{category}")
     suspend fun getProductsByCategory(@Path("category") category: String): Response<List<Product>>
     
     // Arama
-    @GET("api/products/search")
+    @GET("products/search")
     suspend fun searchProducts(@Query("q") query: String): Response<List<Product>>
     
     // Yeni ürünler
-    @GET("api/products/new")
+    @GET("products/new")
     suspend fun getNewProducts(): Response<List<Product>>
     
     // Çok satanlar
-    @GET("api/products/bestsellers")
+    @GET("products/bestsellers")
     suspend fun getBestSellers(): Response<List<Product>>
     
     // Kullanıcı girişi
-    @POST("api/auth/login")
+    @POST("auth/login")
     suspend fun login(@Body authRequest: AuthRequest): Response<AuthResponse>
     
     // Kullanıcı kaydı
-    @POST("api/auth/register")
+    @POST("auth/register")
     suspend fun register(@Body registerRequest: RegisterRequest): Response<AuthResponse>
     
     // Kullanıcı profili bilgilerini getir (Eski endpoint)
-    @GET("api/users/profile")
+    @GET("users/profile")
     suspend fun getUserProfile(): Response<User>
     
     // Kullanıcı bilgileri ve adresini getir (Yeni endpoint)
-    @GET("api/auth/me")
+    @GET("auth/me")
     suspend fun getCurrentUser(): Response<User>
     
     // Kullanıcı adresini güncelle
-    @PUT("api/auth/update-profile")
+    @PUT("auth/update-profile")
     suspend fun updateUserAddress(@Body addressUpdate: Map<String, String>): Response<User>
     
     // Yeni ürün ekleme
-    @POST("api/products")
+    @POST("products")
     suspend fun addProduct(@Body product: Product): Response<Product>
     
     // Ürün güncelleme
-    @PUT("api/products/{id}")
+    @PUT("products/{id}")
     suspend fun updateProduct(@Path("id") id: String, @Body product: Product): Response<Product>
     
     // Ürün silme
-    @DELETE("api/products/{id}")
+    @DELETE("products/{id}")
     suspend fun deleteProduct(@Path("id") id: String): Response<Void>
 } 

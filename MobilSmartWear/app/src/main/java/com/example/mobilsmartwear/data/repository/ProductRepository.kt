@@ -3,13 +3,14 @@ package com.example.mobilsmartwear.data.repository
 import android.util.Log
 import com.example.mobilsmartwear.data.model.Product
 import com.example.mobilsmartwear.data.remote.RetrofitClient
+import com.example.mobilsmartwear.data.remote.api.ProductApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
 
 class ProductRepository {
-    private val apiService = RetrofitClient.apiService
+    private val productApi: ProductApi = RetrofitClient.retrofit.create(ProductApi::class.java)
     
     companion object {
         private const val TAG = "ProductRepository"
@@ -18,7 +19,7 @@ class ProductRepository {
     fun getAllProducts(): Flow<List<Product>> = flow {
         try {
             Log.d(TAG, "API çağrısı yapılıyor: getAllProducts")
-            val response = apiService.getProducts()
+            val response = productApi.getProducts()
             
             if (response.isSuccessful) {
                 val products = response.body() ?: emptyList()
@@ -43,7 +44,7 @@ class ProductRepository {
     fun getFeaturedProducts(): Flow<List<Product>> = flow {
         try {
             Log.d(TAG, "API çağrısı yapılıyor: getFeaturedProducts")
-            val response = apiService.getFeaturedProducts()
+            val response = productApi.getFeaturedProducts()
             
             if (response.isSuccessful) {
                 val products = response.body() ?: emptyList()
@@ -62,7 +63,7 @@ class ProductRepository {
     fun searchProducts(query: String): Flow<List<Product>> = flow {
         try {
             Log.d(TAG, "API çağrısı yapılıyor: searchProducts")
-            val response = apiService.searchProducts(query)
+            val response = productApi.searchProducts(query)
             
             if (response.isSuccessful) {
                 val products = response.body() ?: emptyList()
@@ -93,7 +94,7 @@ class ProductRepository {
             }
             
             Log.d(TAG, "API çağrısı yapılıyor: getProductsByCategory")
-            val response = apiService.getProductsByCategory(category)
+            val response = productApi.getProductsByCategory(category)
             
             if (response.isSuccessful) {
                 val products = response.body() ?: emptyList()
@@ -117,7 +118,7 @@ class ProductRepository {
     suspend fun getProductById(id: String): Product? {
         try {
             Log.d(TAG, "API çağrısı yapılıyor: getProductById($id)")
-            val response = apiService.getProductById(id)
+            val response = productApi.getProductById(id)
             
             if (response.isSuccessful) {
                 val product = response.body()
@@ -202,7 +203,7 @@ class ProductRepository {
      */
     suspend fun addProduct(product: Product): Product? {
         return try {
-            val response = apiService.addProduct(product)
+            val response = productApi.addProduct(product)
             if (response.isSuccessful) {
                 val addedProduct = response.body()
                 Log.d(TAG, "Ürün başarıyla eklendi: ${addedProduct?.name}")
@@ -225,7 +226,7 @@ class ProductRepository {
      */
     suspend fun updateProduct(id: String, product: Product): Product? {
         return try {
-            val response = apiService.updateProduct(id, product)
+            val response = productApi.updateProduct(id, product)
             if (response.isSuccessful) {
                 val updatedProduct = response.body()
                 Log.d(TAG, "Ürün başarıyla güncellendi: ${updatedProduct?.name}")
@@ -248,15 +249,8 @@ class ProductRepository {
     suspend fun deleteProductById(id: String): Boolean {
         return try {
             Log.d(TAG, "API çağrısı yapılıyor: deleteProductById($id)")
-            val response = apiService.deleteProduct(id)
-            
-            if (response.isSuccessful) {
-                Log.d(TAG, "Ürün başarıyla silindi: $id")
-                true
-            } else {
-                Log.e(TAG, "Ürün silinemedi: ${response.code()} - ${response.message()}")
-                false
-            }
+            val response = productApi.deleteProduct(id)
+            response.isSuccessful
         } catch (e: Exception) {
             Log.e(TAG, "Ürün silinirken hata oluştu", e)
             false

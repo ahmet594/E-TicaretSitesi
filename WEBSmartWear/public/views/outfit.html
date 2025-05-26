@@ -9,9 +9,11 @@
     <link rel="stylesheet" href="/css/components/navbar.css">
     <link rel="stylesheet" href="/css/components/outfit.css">
     <link rel="stylesheet" href="/css/components/footer.css">
+    <link rel="stylesheet" href="/css/chatbot.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Global bağımlılıklar -->
     <script src="/js/dependencies.js"></script>
+    <script src="/scripts/chatbot.js" defer></script>
 </head>
 <body>
     <!-- Navbar will be loaded here -->
@@ -19,22 +21,25 @@
 
     <!-- Outfit Builder Section -->
     <section class="outfit-builder">
-        <div class="container">
-            <h1 class="section-title">Kombin Oluştur</h1>
-            
+        <div class="container">            
             <!-- Seçili Ürünler -->
             <div class="selected-products">
-                <h3>Seçili Ürünler</h3>
+                <h5>Seçili Ürünler</h5>
                 <div id="selected-products-list" class="selected-products-list">
                     <!-- Seçili ürünler buraya dinamik olarak eklenecek -->
                 </div>
+                <div class="outfit-actions">
+                    <button id="findOutfitsBtn" class="btn btn-primary" onclick="findMatchingOutfits()">
+                        <i class="fas fa-tshirt"></i> Kombinle
+                    </button>
+                </div>
             </div>
 
-            <!-- Ürün Önerileri -->
+            <!-- Önerilen Kombinler -->
             <div class="product-suggestions">
-                <h3>Önerilen Ürünler</h3>
-                <div id="suggested-products" class="products-grid">
-                    <!-- Önerilen ürünler buraya dinamik olarak eklenecek -->
+                <h5>Önerilen Kombinler</h5>
+                <div id="suggested-products" class="outfit-suggestions-container">
+                    <!-- Önerilen kombinler buraya dinamik olarak eklenecek -->
                 </div>
             </div>
         </div>

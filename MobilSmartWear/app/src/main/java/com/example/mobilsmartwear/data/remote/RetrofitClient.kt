@@ -19,7 +19,8 @@ object RetrofitClient {
     private const val TAG = "RetrofitClient"
     
     // Backend API adresleri
-    private const val BASE_URL = "http://192.168.43.3:3000/"
+    private const val BASE_URL = "http://192.168.43.3:3000/api/"
+    private const val BASE_IMAGE_URL = "http://192.168.43.3:3000"
     private const val TIMEOUT_SECONDS = 30L
     
     private var userPreferences: UserPreferences? = null
@@ -74,7 +75,7 @@ object RetrofitClient {
             .build()
     }
     
-    private val retrofit by lazy {
+    val retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
@@ -89,8 +90,8 @@ object RetrofitClient {
         Log.d(TAG, "Converting image path: $imagePath")
         return when {
             imagePath.startsWith("http") -> imagePath
-            imagePath.startsWith("/") -> "$BASE_URL${imagePath.substring(1)}"
-            else -> "$BASE_URL$imagePath"
+            imagePath.startsWith("/") -> "$BASE_IMAGE_URL$imagePath"
+            else -> "$BASE_IMAGE_URL/$imagePath"
         }.also { 
             Log.d(TAG, "Converted to: $it")
         }

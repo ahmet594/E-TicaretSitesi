@@ -28,7 +28,9 @@ data class Product(
     var isFavorite: Boolean = false,
     @SerializedName("rating")
     val rating: Float = 0f,
-    val tags: List<String>? = null
+    val tags: List<String>? = null,
+    @SerializedName("combinationCode")
+    val combinationCode: String? = null
 ) {
     val imageUrl: String
         get() = RetrofitClient.getImageUrl(_imageUrl)

@@ -24,8 +24,14 @@ import com.example.mobilsmartwear.ui.screens.profile.AdresScreen
 import com.example.mobilsmartwear.ui.screens.profile.OrdersScreen
 import com.example.mobilsmartwear.ui.screens.profile.ProfileScreen
 import com.example.mobilsmartwear.ui.screens.search.SearchScreen
+import com.example.mobilsmartwear.ui.screens.outfit.OutfitScreen
+import com.example.mobilsmartwear.ui.screens.chat.ChatScreen
 import androidx.compose.material3.Text
 import com.example.mobilsmartwear.di.AppModule
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import androidx.lifecycle.ViewModelProvider
 
 @Composable
 fun NavGraph(
@@ -82,12 +88,22 @@ fun NavGraph(
         }
         
         composable(route = NavDestination.Combination.route) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Kombin Yap Sayfası - Yapım Aşamasında")
-            }
+            val context = LocalContext.current
+            val cartRepository = AppModule.provideCartRepository(context.applicationContext as android.app.Application)
+            
+            OutfitScreen(
+                onProductClick = { productId ->
+                    navController.navigate("${NavDestination.ProductDetail.route}/$productId")
+                },
+                onAddToCart = { product ->
+                    // Gerçek sepete ekleme işlemi
+                    CoroutineScope(Dispatchers.IO).launch {
+                        cartRepository.addToCart(product, quantity = 1)
+                    }
+                    // Cart sayfasına yönlendir
+                    navController.navigate(NavDestination.Cart.route)
+                }
+            )
         }
         
         composable(route = NavDestination.Favorites.route) {
@@ -100,7 +116,13 @@ fun NavGraph(
         }
         
         composable(route = NavDestination.Cart.route) {
+            val context = LocalContext.current
+            val cartViewModel: com.example.mobilsmartwear.ui.screens.cart.CartViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                factory = androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory(context.applicationContext as android.app.Application)
+            )
+            
             CartScreen(
+                viewModel = cartViewModel,
                 onNavigateToLogin = {
                     navController.navigate(NavDestination.Login.route)
                 },
@@ -193,6 +215,12 @@ fun NavGraph(
             ) {
                 Text("Şifre Değiştirme Sayfası - Yapım Aşamasında")
             }
+        }
+        
+        composable(route = NavDestination.Chat.route) {
+            ChatScreen(
+                onBackClick = { navController.popBackStack() }
+            )
         }
     }
 } 

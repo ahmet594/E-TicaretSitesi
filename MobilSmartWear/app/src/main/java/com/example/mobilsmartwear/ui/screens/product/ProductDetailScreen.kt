@@ -22,7 +22,9 @@ import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import android.app.Application
+import android.util.Log
 import com.example.mobilsmartwear.R
+import com.example.mobilsmartwear.util.CombinationManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,11 +39,22 @@ fun ProductDetailScreen(
         )
     )
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
+    val selectedProducts by CombinationManager.selectedProducts.collectAsState()
     val scrollState = rememberScrollState()
     var selectedSize by remember { mutableStateOf<String?>(null) }
+    
+    // CombinationManager'daki değişiklikleri reactive olarak takip et
+    val isSelected by remember {
+        derivedStateOf {
+            uiState.product?.let { product ->
+                selectedProducts.any { it.id == product.id }
+            } ?: false
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -273,6 +286,56 @@ fun ProductDetailScreen(
                     ) {
                         Text(
                             text = "SEPETE EKLE",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Kombinle Butonu
+                    OutlinedButton(
+                        onClick = { 
+                            uiState.product?.let { product ->
+                                if (isSelected) {
+                                    CombinationManager.removeProduct(product.id)
+                                } else {
+                                    val success = CombinationManager.addProduct(product)
+                                    if (!success) {
+                                        // Aynı kombinasyon kodundan ürün zaten var
+                                        if (product.combinationCode != null) {
+                                            android.widget.Toast.makeText(
+                                                context,
+                                                "Bu türden bir ürün zaten seçilmiş. Önce onu kaldırın.",
+                                                android.widget.Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (isSelected) 
+                                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
+                            else 
+                                MaterialTheme.colorScheme.surface,
+                            contentColor = if (isSelected)
+                                MaterialTheme.colorScheme.error
+                            else
+                                MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (isSelected) Icons.Default.Close else Icons.Default.Style,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (isSelected) "KOMBİNDEN ÇIKAR" else "KOMBİNLE",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
